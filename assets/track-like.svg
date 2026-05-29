@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Like (&#229;&#150;&#156;&#230;&#172;&#162;)">
+<mask id="mask0_0_49" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="1" y="3" width="18" height="15">
+<path id="Vector" d="M6.25033 3.33331C3.71902 3.33331 1.66699 5.38535 1.66699 7.91665C1.66699 12.5 7.08366 16.6666 10.0003 17.6359C12.917 16.6666 18.3337 12.5 18.3337 7.91665C18.3337 5.38535 16.2816 3.33331 13.7503 3.33331C12.2002 3.33331 10.8298 4.10285 10.0003 5.28073C9.17087 4.10285 7.80045 3.33331 6.25033 3.33331Z" fill="var(--fill-0, #EA387F)"/>
+</mask>
+<g mask="url(#mask0_0_49)">
+<path id="Vector_2" d="M6.25033 3.33331C3.71902 3.33331 1.66699 5.38535 1.66699 7.91665C1.66699 12.5 7.08366 16.6666 10.0003 17.6359C12.917 16.6666 18.3337 12.5 18.3337 7.91665C18.3337 5.38535 16.2816 3.33331 13.7503 3.33331C12.2002 3.33331 10.8298 4.10285 10.0003 5.28073C9.17087 4.10285 7.80045 3.33331 6.25033 3.33331Z" fill="var(--fill-0, #EA387F)"/>
+<path id="Vector 468" d="M2 11.5H7L8.5 9L10.5 14.5L12 11.5H18" stroke="var(--stroke-0, white)" stroke-opacity="0.5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</svg>

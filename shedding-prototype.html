@@ -1,0 +1,1757 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shedding Demo</title>
+  <style>
+    :root {
+      --blue: #048ddb;
+      --sky: #3baafa;
+      --ink: #222831;
+      --deep: #223060;
+      --muted: #8a89a0;
+      --soft: #bfbecb;
+      --line: #e6e6e7;
+      --page: #f5f5f5;
+      --white: #fff;
+      --shadow: 2px 4px 16px rgba(52, 84, 242, .08);
+      --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #eef3f4;
+      color: var(--ink);
+      font-family: var(--ios-font);
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+
+    .phone {
+      width: 393px;
+      height: 852px;
+      position: relative;
+      overflow: hidden;
+      background: var(--page);
+      border-radius: 0;
+      box-shadow: 0 28px 80px rgba(17, 38, 61, .18);
+    }
+
+    @media (max-width: 500px) {
+      body { place-items: start; }
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 128px;
+      scrollbar-width: none;
+      transition: background .45s ease;
+      overscroll-behavior: contain;
+      overflow-anchor: none;
+    }
+
+    .screen::-webkit-scrollbar { width: 0; height: 0; }
+    .screen.active { display: block; }
+    .hash-anchor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
+    }
+
+    .soft-bg {
+      --top-fade: 0;
+      background:
+        radial-gradient(120% 32% at 23% -4%, rgba(141, 221, 239, .75), transparent 70%),
+        radial-gradient(100% 28% at 95% -6%, rgba(36, 174, 253, .55), transparent 72%),
+        #f5f5f5;
+    }
+
+    .soft-bg::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 150px;
+      pointer-events: none;
+      opacity: var(--top-fade);
+      background: linear-gradient(180deg, #f5f5f5 0%, rgba(245,245,245,.94) 66%, rgba(245,245,245,0) 100%);
+      transition: opacity .12s linear;
+      z-index: 0;
+    }
+
+    .today-first { background: linear-gradient(180deg, #24aefd 0%, #8dddef 100%); }
+    .blue-layer {
+      position: absolute;
+      inset: 0;
+      min-height: 100%;
+      height: 1200px;
+      background: linear-gradient(180deg, #24aefd 0%, #8dddef 100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .55s ease;
+      z-index: 0;
+    }
+    .today-first .blue-layer { opacity: 1; }
+    #today > :not(.blue-layer) {
+      position: relative;
+      z-index: 1;
+    }
+
+    .soft-bg > :not(.blue-layer) {
+      position: relative;
+      z-index: 1;
+    }
+
+    .statusbar {
+      height: 59px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 28px 4px;
+      position: sticky;
+      top: 0;
+      z-index: 35;
+      color: #000;
+      pointer-events: none;
+      background: rgba(245,245,245,var(--top-fade, 0));
+      backdrop-filter: blur(10px) saturate(1.1);
+      -webkit-backdrop-filter: blur(10px) saturate(1.1);
+      transition: background .12s linear;
+    }
+
+    .today-first .statusbar {
+      color: #fff;
+      background: linear-gradient(180deg, rgba(36,174,253,.72) 0%, rgba(36,174,253,.34) 72%, rgba(36,174,253,0) 100%);
+    }
+
+    .screen:not(#today) .statusbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+    }
+
+    .time {
+      font: 600 16px/21px var(--ios-font);
+      width: 54px;
+      text-align: center;
+    }
+
+    .island {
+      width: 125px;
+      height: 37px;
+      border-radius: 100px;
+      background: #000;
+      margin-left: 6px;
+    }
+
+    .indicators {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      width: 76px;
+      justify-content: flex-end;
+    }
+
+    .indicators img { display: block; height: 12px; object-fit: contain; }
+    .indicators img:nth-child(1) { width: 18px; }
+    .indicators img:nth-child(2) { width: 17px; }
+    .indicators img:nth-child(3) { width: 25px; height: 11px; }
+    .soft-bg .indicators img { filter: brightness(0); }
+
+    .top-row {
+      position: relative;
+      z-index: 5;
+      margin: 8px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hello {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .today-first .hello { color: rgba(255,255,255,.72); }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #1b82c2;
+      color: rgba(255,255,255,.85);
+      display: grid;
+      place-items: center;
+      font-weight: 600;
+      font-size: 20px;
+    }
+
+    .avatar.large { width: 40px; height: 40px; font-size: 22px; }
+
+    h1 {
+      margin: 0;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--ink);
+    }
+
+    .today-title {
+      margin: 8px 20px 0;
+      width: 286px;
+      font-size: 32px;
+      color: var(--deep);
+    }
+
+    .today-first .today-title {
+      width: 230px;
+      color: #fff;
+    }
+
+    .mood-row {
+      margin: 27px 16px 0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mood {
+      width: 66px;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: rgba(255,255,255,.72);
+      font: 400 13px/1.4 var(--ios-font);
+      cursor: pointer;
+    }
+
+    .mood-img {
+      width: 66px;
+      height: 66px;
+      border-radius: 16px;
+      padding: 3px;
+      background: linear-gradient(180deg, rgba(245,250,255,.9), rgba(223,240,255,.9));
+      box-shadow: inset -0.5px -0.5px 1px #fff, inset 1px 1px 1px #fff;
+      display: block;
+      margin-bottom: 7px;
+    }
+
+    .mood-img img {
+      width: 60px;
+      height: 60px;
+      display: block;
+      object-fit: cover;
+      filter: drop-shadow(0 0 4px #fff);
+    }
+
+    .section-head {
+      margin: 28px 24px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .section-head.compact { margin-top: 24px; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 20px;
+      line-height: 1.4;
+      font-weight: 600;
+      color: #fff;
+      flex: 0 0 auto;
+    }
+
+    .soft-bg .section-title, .screen:not(.today-first) .section-title { color: var(--deep); }
+    .count { font-size: 16px; font-weight: 400; color: inherit; }
+    .soft-bg .count { color: var(--blue); }
+
+    .icon-btn {
+      border: 0;
+      background: transparent;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      padding: 2px;
+      cursor: pointer;
+    }
+
+    .icon-btn img { width: 24px; height: 24px; display: block; }
+    .today-first .icon-btn img { filter: brightness(0) invert(1); opacity: .72; }
+
+    .plan-card {
+      margin: 0 16px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      padding: 8px 0;
+    }
+
+    .plan-item {
+      min-height: 78px;
+      display: grid;
+      grid-template-columns: 48px 1fr 88px;
+      align-items: center;
+      gap: 4px;
+      padding: 0 8px 0 0;
+      position: relative;
+    }
+
+    .plan-item:not(:last-child) {
+      margin-bottom: 8px;
+    }
+
+    .plan-item:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: 48px;
+      right: 0;
+      bottom: -4px;
+      height: .5px;
+      background: rgba(230,230,231,.72);
+    }
+
+    .check-hot {
+      width: 48px;
+      height: 78px;
+      border: 0;
+      background: transparent;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .check-icon {
+      width: 48px;
+      height: 60px;
+      display: block;
+      object-fit: contain;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .plan-item.done .check-icon {
+      width: 22px;
+      height: 22px;
+    }
+
+    .plan-copy { min-width: 0; }
+    .plan-name {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.4;
+      font-weight: 500;
+      color: var(--ink);
+      text-transform: capitalize;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .plan-sub {
+      margin: 3px 0 0;
+      color: var(--soft);
+      font-size: 14px;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bar {
+      margin-top: 6px;
+      width: 180px;
+      max-width: 100%;
+      height: 6px;
+      border-radius: 47px;
+      background: #dfe5e9;
+      overflow: hidden;
+    }
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+    .plan-art {
+      width: 80px;
+      height: 80px;
+      justify-self: end;
+      object-fit: contain;
+    }
+
+    .status-card {
+      margin: 29px 16px 0;
+      min-height: 0;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(245,250,255,.92), rgba(255,255,255,1));
+      box-shadow: var(--shadow), inset -0.5px -0.5px 1px #fff, inset 1px 1px 1px #fff;
+      padding: 16px 12px 12px;
+      position: relative;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .38s ease, transform .38s ease, min-height .38s ease, padding .38s ease;
+    }
+
+    .status-card.result-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    .status-head {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      padding: 0 0 9px;
+    }
+
+    .status-head h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.4;
+      color: var(--ink);
+      flex: 0 0 auto;
+    }
+
+    .status-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .status-actions > img { margin-left: auto; }
+
+    .mood-pill {
+      border: 0;
+      padding: 2px 8px;
+      min-height: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 8px;
+      background: rgba(228,137,190,.3);
+      color: #8c0c30;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .mood-pill img { width: 16px; height: 16px; }
+
+    .ai-text {
+      height: 60px;
+      margin: 0 4px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+      max-height: 60px;
+      -webkit-mask-image: linear-gradient(#000 0 72%, transparent 100%);
+      mask-image: linear-gradient(#000 0 72%, transparent 100%);
+    }
+    .ai-text b { color: var(--blue); font-weight: 500; }
+
+    .recommend {
+      margin-top: 0;
+      display: grid;
+      grid-template-columns: 72px 1fr 24px;
+      gap: 10px;
+      align-items: center;
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 0 8px;
+      min-height: 0;
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity .48s cubic-bezier(.2,.8,.2,1), transform .48s cubic-bezier(.2,.8,.2,1), max-height .48s cubic-bezier(.2,.8,.2,1), margin-top .48s cubic-bezier(.2,.8,.2,1);
+      margin-top: 0;
+    }
+    .recommend.show {
+      display: grid;
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+      max-height: 88px;
+      margin-top: 12px;
+      min-height: 88px;
+      padding: 8px;
+    }
+    .recommend img.thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+    .recommend h3 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tags { display: flex; gap: 8px; margin-top: 10px; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 23px;
+      border-radius: 6px;
+      padding: 3px 10px;
+      background: rgba(144,137,180,.1);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .tag img {
+      width: 12px;
+      height: 12px;
+      display: block;
+    }
+
+    .more-details {
+      margin: 21px auto 55px;
+      width: 233px;
+      border: 0;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(245,250,255,.9), #fff);
+      box-shadow: 2px 4px 8px rgba(52,84,242,.08), inset -0.5px -0.5px 1px #fff, inset 1px 1px 1px #fff;
+      padding: 12px 10px 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .today-first .more-details {
+      background: linear-gradient(180deg, rgba(245,250,255,.82), rgba(255,255,255,.9));
+    }
+    .more-details span:last-child {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--soft);
+      font-size: 14px;
+    }
+    .more-details img { width: 20px; height: 20px; }
+
+    .page-title-row {
+      margin: 0;
+      padding: 0 24px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 25;
+      background: rgba(245,245,245,var(--top-fade, 0));
+      backdrop-filter: blur(22px) saturate(1.2);
+      -webkit-backdrop-filter: blur(22px) saturate(1.2);
+      transition: background .12s linear;
+    }
+    .screen:not(#today) .page-title-row {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 59px;
+      margin-top: 0;
+      z-index: 34;
+    }
+    .page-title-row::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -30px;
+      height: 30px;
+      pointer-events: none;
+      opacity: var(--top-fade, 0);
+      background: linear-gradient(180deg, rgba(245,245,245,.86), rgba(245,245,245,0));
+      transition: opacity .12s linear;
+    }
+    .page-title-row h1 { font-size: 24px; }
+
+    .continue-card {
+      margin: 32px 16px 0;
+      min-height: 85px;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr 28px;
+      gap: 12px;
+      align-items: center;
+      transition: opacity .48s cubic-bezier(.2,.8,.2,1), transform .48s cubic-bezier(.2,.8,.2,1), margin .48s cubic-bezier(.2,.8,.2,1), min-height .48s cubic-bezier(.2,.8,.2,1), padding .48s cubic-bezier(.2,.8,.2,1), height .48s cubic-bezier(.2,.8,.2,1);
+    }
+    .screen:not(#today) .continue-card {
+      margin-top: 139px;
+    }
+    .screen:not(#today) .continue-card.hidden-card {
+      margin-top: 0;
+    }
+
+    .continue-card.hidden-card {
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+      height: 0;
+      min-height: 0;
+      margin-top: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .screen:not(#today) .continue-card.hidden-card + .tabs-scroll {
+      margin-top: 135px;
+    }
+
+    .continue-card h2 {
+      margin: 0 0 8px;
+      max-width: 280px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 18px;
+      line-height: 1.4;
+    }
+    .continue-card h2 span { color: var(--blue); }
+    .progress-line { display: flex; align-items: center; gap: 9px; color: #909bbd; font-size: 14px; }
+    .progress-line .bar { width: 174px; height: 8px; margin: 0; }
+
+    .tabs-scroll {
+      margin: 28px 0 16px 24px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-right: 16px;
+      scrollbar-width: none;
+      position: relative;
+      z-index: 2;
+      padding-top: 0;
+      padding-bottom: 0;
+      background: transparent;
+    }
+    .tabs-scroll::-webkit-scrollbar { display: none; }
+    .chip {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font: 400 16px/1.3 var(--ios-font);
+      text-transform: capitalize;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .chip.active {
+      color: var(--ink);
+      background: rgba(4,141,219,.1);
+    }
+
+    .course-list {
+      margin: 0 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      transition: transform .48s cubic-bezier(.2,.8,.2,1);
+    }
+    .course {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
+      color: inherit;
+    }
+    .course-media {
+      height: 203px;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(180deg, #c8dcea 0%, #e9f6ff 78%, #b1c6d5 100%);
+      box-shadow: var(--shadow), inset -0.5px -0.5px 1px #fff, inset 1px 1px 1px #fff;
+    }
+    .course-media img.bg, .course-media img.person, .course-media img.person-custom, .course-media img.card-shot {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+    }
+    .course-media img.card-shot {
+      inset: 0;
+      object-fit: cover;
+      display: block;
+    }
+    .course-media img.bg {
+      inset: 0;
+      object-fit: cover;
+      mix-blend-mode: soft-light;
+    }
+    .course-media img.person {
+      inset: 0;
+      object-fit: fill;
+      object-position: bottom center;
+    }
+    .course-media img.person-custom {
+      left: 23.79%;
+      top: 5.02%;
+      width: 52.66%;
+      height: 90.02%;
+      object-fit: fill;
+    }
+    .duration {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      min-height: 22px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.8);
+      border: 1px solid #fff;
+      padding: 3px 7px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .duration img { width: 14px; height: 14px; display: block; }
+    .duration img[src$="time-combined.svg"] { width: 14px; height: 14px; }
+    .course-copy {
+      display: grid;
+      grid-template-columns: 1fr 28px;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 0 0 8px;
+    }
+    .course-copy h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .course-copy p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .skeleton .course-media, .skeleton-line {
+      background: linear-gradient(90deg, #eef0f2, #fff, #eef0f2);
+      background-size: 220% 100%;
+      animation: shine 1s linear infinite;
+    }
+    .skeleton-line {
+      height: 20px;
+      border-radius: 10px;
+      margin: 12px 8px 0;
+    }
+
+    .date-row {
+      margin: 32px 16px 20px;
+      height: 66px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      touch-action: pan-y;
+      transition: transform .25s ease, opacity .25s ease;
+    }
+    .screen:not(#today) .date-row {
+      margin-top: 135px;
+    }
+    .date-cell {
+      width: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .date-cell small {
+      height: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.3;
+      font-weight: 300;
+      text-transform: capitalize;
+    }
+    .date-cell span {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-size: 16px;
+    }
+    .date-cell.active span {
+      color: #fff;
+      background: var(--sky);
+    }
+    .date-cell.future { cursor: default; }
+    .date-cell.future span { color: rgba(34,40,49,.3); }
+
+    .track-heading {
+      margin: 0 24px 14px;
+      font-size: 20px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .diet-card {
+      margin: 0 16px 28px;
+      height: 356px;
+      border-radius: 20px;
+      position: relative;
+      color: var(--ink);
+      padding: 16px 12px 12px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: var(--shadow), inset -0.5px -0.5px 1px #fff, inset 1px 1px 1px #fff;
+    }
+    .diet-card > * { position: relative; z-index: 1; }
+    .diet-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 36px;
+      padding: 0 4px 0 8px;
+    }
+    .remaining { color: var(--muted); font-size: 16px; }
+    .remaining b { color: var(--blue); font-size: 28px; margin-left: 4px; }
+    .diet-label {
+      display: none;
+      align-items: center;
+      gap: 16px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 20px;
+    }
+    .diet-label img { width: 20px; height: 20px; filter: brightness(0) invert(1); }
+    .arc-wrap {
+      height: 214px;
+      margin-top: 2px;
+      position: relative;
+    }
+    .arc {
+      position: absolute;
+      left: 14px;
+      top: 6px;
+      width: 333px;
+      height: 172px;
+      overflow: visible;
+    }
+    .arc svg { width: 100%; height: 100%; display: block; overflow: visible; }
+    .arc-track, .arc-progress {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: 21;
+    }
+    .arc-track { stroke: #dfe5e9; }
+    .arc-progress {
+      stroke: #4ab9e5;
+      stroke-dasharray: var(--arc-len, 440);
+      stroke-dashoffset: var(--dash, 220);
+      transition: stroke-dashoffset .45s ease;
+    }
+    .bubbles {
+      position: absolute;
+      width: 38px;
+      height: 24px;
+      left: calc(14px + var(--bubble-x, 188px) - 9px);
+      top: calc(6px + var(--bubble-y, 42px) - 9px);
+      opacity: 1;
+      transform: rotate(var(--bubble-rot, 0deg));
+      transform-origin: 8px 8px;
+      transition: left .45s ease, top .45s ease, transform .45s ease;
+      pointer-events: none;
+      z-index: 4;
+    }
+    .bubbles span {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(91, 217, 232, .95);
+    }
+    .bubbles span:nth-child(1) { left: 1px; top: 6px; width: 6px; height: 6px; background: rgba(96, 229, 238, .7); }
+    .bubbles span:nth-child(2) { left: 9px; top: 9px; width: 8px; height: 8px; }
+    .bubbles span:nth-child(3) { left: 18px; top: 5px; width: 13px; height: 13px; background: rgba(91, 217, 232, .72); }
+    .bubbles span:nth-child(4) { left: 31px; top: 12px; width: 4px; height: 4px; background: rgba(96, 229, 238, .7); }
+    .jelly {
+      position: absolute;
+      left: 118px;
+      top: 92px;
+      width: 109px;
+      height: 126px;
+      animation: jellyFloat 5s ease-in-out infinite;
+    }
+    .jelly img.body { position: absolute; inset: 0 0 auto; width: 109px; height: 113px; }
+    .jelly img.eye-l {
+      position: absolute;
+      width: 29px;
+      height: 34px;
+      left: 33px;
+      top: 21px;
+    }
+    .jelly img.eye-r {
+      position: absolute;
+      width: 29px;
+      height: 34px;
+      left: 66px;
+      top: 22px;
+    }
+    .jelly-shadow {
+      position: absolute;
+      left: 139px;
+      top: 210px;
+      width: 68px;
+      height: 8px;
+      animation: shadowPulse 5s ease-in-out infinite;
+    }
+    .diet-stats {
+      position: absolute;
+      top: 218px;
+      left: 24px;
+      right: 24px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .diet-stats p { margin: 0; font-size: 14px; line-height: 1.4; }
+    .diet-stats b { display: block; color: var(--ink); font-size: 20px; }
+    .intake-label { color: #f5940c; }
+    .burn-label { color: #ea387f; text-align: right; }
+    .food-strip {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      height: 59px;
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .food-strip::before,
+    .food-strip::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 26px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .food-strip::before {
+      left: 0;
+      background: linear-gradient(90deg, #fff, rgba(255,255,255,0));
+    }
+    .food-strip::after {
+      right: 36px;
+      background: linear-gradient(270deg, #fff, rgba(255,255,255,0));
+    }
+    .foods {
+      width: 291px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .foods::-webkit-scrollbar { display: none; }
+    .food-card {
+      flex: 0 0 auto;
+      min-width: 104px;
+      height: 59px;
+      border-radius: 8px;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 8px;
+    }
+    .food-card img { width: 24px; height: 24px; }
+    .food-card small {
+      display: block;
+      color: rgba(34,40,49,.3);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .food-card b {
+      display: block;
+      font-size: 18px;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+    .food-add {
+      width: 36px;
+      border: 0;
+      border-radius: 8px;
+      background: #f5f5f5;
+      color: rgba(34,40,49,.3);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .food-add img { width: 18px; height: 18px; }
+
+    .status-grid {
+      margin: 0 16px 22px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .status-grid-shot {
+      width: 361px;
+      display: block;
+      margin: 0 16px 22px;
+      border-radius: 20px;
+    }
+    .metric-card {
+      height: 197px;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: var(--shadow), inset -0.5px -0.5px 1px #fff, inset 1px 1px 1px #fff;
+      overflow: hidden;
+      position: relative;
+    }
+    .metric-head {
+      height: 44px;
+      border-bottom: .5px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 12px 12px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+    .metric-title { display: flex; gap: 8px; align-items: center; }
+    .metric-title img { width: 20px; height: 20px; display: block; }
+    .metric-icon-water {
+      width: 20px;
+      height: 20px;
+      position: relative;
+      flex: 0 0 auto;
+    }
+    .metric-icon-water img { position: absolute; left: 3.75px; width: 12.5px; display: block; }
+    .metric-icon-water img:first-child { top: 1.67px; height: 16.67px; }
+    .metric-icon-water img:last-child { top: 11.53px; height: 6.81px; }
+    .metric-value {
+      position: absolute;
+      left: 16px;
+      top: 52px;
+      font-size: 32px;
+      line-height: 1.4;
+      font-weight: 600;
+      color: var(--deep);
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .metric-value small {
+      color: rgba(34,40,49,.3);
+      font-size: 20px;
+      margin-left: 0;
+      font-weight: 510;
+    }
+    .metric-value .number { font-weight: 600; }
+    .mini-bars {
+      position: absolute;
+      left: 16px;
+      top: 122px;
+      height: 42px;
+      width: 143px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .mini-bars i {
+      display: flex;
+      align-items: center;
+      width: 3px;
+      height: 42px;
+      border-radius: 1px;
+      background: #e5e9ee;
+      overflow: hidden;
+    }
+    .mini-bars i::after {
+      content: "";
+      width: 3px;
+      height: var(--h);
+      border-radius: 1px;
+      background: var(--c);
+    }
+    .water-bars i::after { height: 42px; opacity: var(--on); }
+    .range-asset {
+      position: absolute;
+      left: 16px;
+      top: 147px;
+      width: 143px;
+      height: 17px;
+    }
+    .range-asset img.range-img {
+      position: absolute;
+      inset: 0;
+      width: 143px;
+      height: 17px;
+      display: block;
+    }
+    .range-asset img.range-caret {
+      position: absolute;
+      top: -6px;
+      width: 18px;
+      height: 9px;
+      left: var(--caret-left);
+      display: block;
+    }
+    .metric-foot {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      color: rgba(34,40,49,.3);
+      font-size: 12px;
+    }
+
+    .bottom-fade {
+      pointer-events: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 169px;
+      background: linear-gradient(0deg, rgba(0,0,0,.15), rgba(0,0,0,0));
+      z-index: 30;
+    }
+
+    .tabbar-shell {
+      position: absolute;
+      z-index: 40;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 99px;
+      pointer-events: none;
+    }
+
+    .liquid-tabs {
+      position: absolute;
+      left: 50%;
+      bottom: 35px;
+      width: 271px;
+      height: 60px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+      padding: 3px;
+      pointer-events: auto;
+      background: linear-gradient(135deg, rgba(255,255,255,.42), rgba(255,255,255,.18));
+      border: 1px solid rgba(255,255,255,.78);
+      box-shadow: 0 18px 38px rgba(31,47,75,.18), inset 0 1px 0 rgba(255,255,255,.88), inset 0 -1px 0 rgba(255,255,255,.35);
+      backdrop-filter: blur(36px) saturate(1.9);
+      -webkit-backdrop-filter: blur(36px) saturate(1.9);
+      overflow: hidden;
+    }
+
+    .liquid-tabs::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      background: linear-gradient(140deg, rgba(255,255,255,.62), rgba(255,255,255,.22));
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .tab-highlight {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 88px;
+      height: 54px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.7);
+      box-shadow: 0 10px 22px rgba(31,47,75,.12), inset 0 1px 1px #fff, inset 0 -1px 4px rgba(255,255,255,.65);
+      transition: transform .28s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .liquid-tabs[data-active="move"] .tab-highlight { transform: translateX(88.5px); }
+    .liquid-tabs[data-active="track"] .tab-highlight { transform: translateX(177px); }
+
+    .tab {
+      position: relative;
+      z-index: 1;
+      height: 54px;
+      border: 0;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      color: #333;
+      font: 600 10px/1.1 Inter, var(--ios-font);
+      cursor: pointer;
+    }
+    .tab img {
+      width: 28px;
+      height: 28px;
+      display: block;
+      filter: brightness(0) saturate(100%) invert(17%) sepia(3%) saturate(420%) hue-rotate(169deg) brightness(95%) contrast(88%);
+    }
+    .tab.active { color: var(--blue); }
+    .tab.active img {
+      filter: brightness(0) saturate(100%) invert(42%) sepia(88%) saturate(1729%) hue-rotate(175deg) brightness(94%) contrast(97%);
+    }
+
+    .home-indicator {
+      position: absolute;
+      left: 50%;
+      bottom: 8px;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      border-radius: 100px;
+      background: #000;
+    }
+
+    .modal {
+      position: absolute;
+      inset: 0;
+      z-index: 70;
+      display: none;
+      align-items: flex-end;
+      background: rgba(0,0,0,.12);
+      padding: 0 12px 12px;
+    }
+    .modal.show { display: flex; }
+    .sheet {
+      width: 100%;
+      border-radius: 28px;
+      background: rgba(248,248,248,.78);
+      border: 1px solid rgba(255,255,255,.65);
+      box-shadow: 0 20px 60px rgba(22,34,52,.24), inset 0 1px 0 rgba(255,255,255,.72);
+      backdrop-filter: blur(30px) saturate(1.35);
+      -webkit-backdrop-filter: blur(30px) saturate(1.35);
+      padding: 10px;
+    }
+    .sheet-title {
+      margin: 8px 8px 10px;
+      font-size: 17px;
+      font-weight: 600;
+      text-align: center;
+    }
+    .sheet button {
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-top: .5px solid rgba(60,60,67,.18);
+      background: transparent;
+      font: 500 17px/1.3 var(--ios-font);
+      color: var(--blue);
+      cursor: pointer;
+    }
+    .sheet button:first-of-type { border-top: 0; }
+
+    @keyframes shine { to { background-position: -220% 0; } }
+    @keyframes jellyFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+    @keyframes shadowPulse { 0%,100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(.62); opacity: .45; } }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="Shedding iPhone demo">
+    <section id="today" class="screen today-first active" data-page="today">
+      <span id="today-result" class="hash-anchor" aria-hidden="true"></span>
+      <div class="blue-layer"></div>
+      <div class="statusbar">
+        <div class="time">9:41</div><div class="island"></div>
+        <div class="indicators"><img src="assets/icon-signal.svg" alt=""><img src="assets/icon-wifi.svg" alt=""><img src="assets/icon-battery.svg" alt=""></div>
+      </div>
+      <div class="top-row"><p class="hello">Good morning, Sally</p><div class="avatar large">S</div></div>
+      <h1 class="today-title" id="todayTitle">How are you feeling today ?</h1>
+
+      <div id="moodChooser" class="mood-row" aria-label="Choose today's mood">
+        <button class="mood" data-mood="Joyful"><span class="mood-img"><img src="assets/mood-joyful.png" alt=""></span>Joyful</button>
+        <button class="mood" data-mood="Relaxed"><span class="mood-img"><img src="assets/mood-relaxed.png" alt=""></span>Relaxed</button>
+        <button class="mood" data-mood="Calm"><span class="mood-img"><img src="assets/mood-calm.png" alt=""></span>Calm</button>
+        <button class="mood" data-mood="Tired"><span class="mood-img"><img src="assets/mood-tired.png" alt=""></span>Tired</button>
+        <button class="mood" data-mood="Sad"><span class="mood-img"><img src="assets/mood-sad.png" alt=""></span>Sad</button>
+      </div>
+
+      <div id="todayResult" class="status-card" hidden>
+        <div class="status-head">
+          <h2>Today's Status</h2>
+          <div class="status-actions">
+            <button class="mood-pill" id="changeMood"><span id="moodLabel">Relaxed</span><img src="assets/icon-edit.svg" alt=""></button>
+            <img src="assets/icon-fullscreen.svg" alt="" width="20" height="20">
+          </div>
+        </div>
+        <p class="ai-text" id="aiText"></p>
+        <div class="recommend" id="recommendCard">
+          <img class="thumb" src="assets/course-thumb.png" alt="">
+          <div>
+            <h3>Morning Back Relaxation</h3>
+            <div class="tags"><span class="tag">No jumping</span><span class="tag">Fast</span><span class="tag"><img src="assets/time-combined.svg" alt="">5′</span></div>
+          </div>
+          <img src="assets/icon-right-soft.svg" alt="" width="24" height="24">
+        </div>
+      </div>
+
+      <div class="section-head" id="todayPlanHead">
+        <div class="section-title">My Plan <span class="count">2/6</span></div>
+        <button class="icon-btn" aria-label="add plan"><img src="assets/icon-add.svg" alt=""></button>
+      </div>
+      <div class="plan-card" id="planList"></div>
+      <button class="more-details" id="moreDetails"><span>More details</span><span>Track <img src="assets/icon-right-soft.svg" alt=""></span></button>
+    </section>
+
+    <section id="move" class="screen soft-bg" data-page="move">
+      <div class="statusbar">
+        <div class="time">9:41</div><div class="island"></div>
+        <div class="indicators"><img src="assets/icon-signal.svg" alt=""><img src="assets/icon-wifi.svg" alt=""><img src="assets/icon-battery.svg" alt=""></div>
+      </div>
+      <div class="page-title-row"><h1>Move</h1><div class="avatar">S</div></div>
+      <div class="continue-card hidden-card" id="continueCard">
+        <div>
+          <h2>Continue: <span>Neck and Shoulder Relief</span></h2>
+          <div class="progress-line"><div class="bar"><span style="width:60%"></span></div>6’30″ /12′</div>
+        </div>
+        <img src="assets/icon-right.svg" alt="" width="28" height="28">
+      </div>
+      <div class="tabs-scroll" id="moveTabs">
+        <button class="chip active">all</button><button class="chip">pilates</button><button class="chip">yoga</button><button class="chip">mobility</button><button class="chip">knee-friendly</button>
+      </div>
+      <div class="course-list" id="courseList"></div>
+    </section>
+
+    <section id="track" class="screen soft-bg" data-page="track">
+      <div class="statusbar">
+        <div class="time">9:41</div><div class="island"></div>
+        <div class="indicators"><img src="assets/icon-signal.svg" alt=""><img src="assets/icon-wifi.svg" alt=""><img src="assets/icon-battery.svg" alt=""></div>
+      </div>
+      <div class="page-title-row"><h1>Track</h1><div class="avatar">S</div></div>
+      <div class="date-row" id="dateRow">
+        <button class="date-cell"><small>S</small><span>24</span></button>
+        <button class="date-cell"><small>M</small><span>25</span></button>
+        <button class="date-cell active"><small>today</small><span>26</span></button>
+        <button class="date-cell future"><small>W</small><span>27</span></button>
+        <button class="date-cell future"><small>T</small><span>28</span></button>
+        <button class="date-cell future"><small>F</small><span>29</span></button>
+        <button class="date-cell future"><small>S</small><span>30</span></button>
+      </div>
+      <h2 class="track-heading">Easy Record</h2>
+      <div class="diet-card">
+        <div class="diet-top">
+          <div class="remaining">Remaining <b id="remainingVal">327</b> kcal</div>
+          <div class="diet-label">Diet <img src="assets/icon-switch.svg" alt=""></div>
+        </div>
+        <div class="arc-wrap">
+          <div class="arc" id="dietArc">
+            <svg viewBox="0 0 360 180" aria-hidden="true">
+              <path class="arc-track" d="M78 160 A120 120 0 0 1 282 160"></path>
+              <path class="arc-progress" d="M78 160 A120 120 0 0 1 282 160"></path>
+            </svg>
+          </div>
+          <div class="bubbles"><span></span><span></span><span></span><span></span></div>
+          <img class="jelly-shadow" src="assets/jelly-shadow.png" alt="">
+          <div class="jelly">
+            <img class="body" src="assets/jellyfish.svg" alt="">
+            <img class="eye-l" src="assets/jelly-eye-left.svg" alt="">
+            <img class="eye-r" src="assets/jelly-eye-right.svg" alt="">
+          </div>
+        </div>
+        <div class="diet-stats">
+          <p class="intake-label">Intake <b><span id="intakeVal">273</span> kcal</b></p>
+          <p class="burn-label">Burned <b>120 kcal</b></p>
+        </div>
+        <div class="food-strip">
+          <div class="foods" id="foods"></div>
+          <button class="food-add" id="addFood">Add <img src="assets/icon-add.svg" alt=""></button>
+        </div>
+      </div>
+      <h2 class="track-heading">Your Status</h2>
+      <div class="status-grid" id="statusGrid"></div>
+    </section>
+
+    <div class="bottom-fade"></div>
+    <nav class="tabbar-shell" aria-label="Primary">
+      <div class="liquid-tabs" id="tabs" data-active="today">
+        <div class="tab-highlight"></div>
+        <button class="tab active" data-target="today"><img src="assets/icon-today.svg" alt="">Today</button>
+        <button class="tab" data-target="move"><img src="assets/icon-move.svg" alt="">Move</button>
+        <button class="tab" data-target="track"><img src="assets/icon-track.svg" alt="">Track</button>
+      </div>
+      <div class="home-indicator"></div>
+    </nav>
+
+    <div class="modal" id="moodModal" role="dialog" aria-modal="true" aria-label="Change mood">
+      <div class="sheet">
+        <div class="sheet-title">Today's Status</div>
+        <button data-mood="Joyful">Joyful</button>
+        <button data-mood="Relaxed">Relaxed</button>
+        <button data-mood="Calm">Calm</button>
+        <button data-mood="Tired">Tired</button>
+        <button data-mood="Sad">Sad</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+    const planItems = [
+      ['Do the Home Pilates', 'Stretch and tone your body', 'assets/plan-pilates-hd.png', 0, false],
+      ['Update Your Meal', 'Show what’s on your plate', 'assets/plan-meal-hd.png', 0, true],
+      ['Be Active', '300 of 600 Cal', 'assets/plan-active-hd.png', 50, false],
+      ['Update Measurements', 'Regular check-ins', 'assets/plan-measure-hd.png', 0, false],
+      ['Drink Water', '2750 of 2750 ml', 'assets/plan-water-hd.png', 100, true],
+      ['Walk', '9,570 of 10,000 steps', 'assets/plan-walk-hd.png', 92, false],
+    ];
+
+    const courses = [
+      ['Morning Back Relaxation', 'A quiet mobility flow before the day gets busy.', '5′', 'assets/course-card-hd-1.png', null, 'shot'],
+      ['Evening Wind-Down Stretch', 'Gentle movements help relieve daily stress, calm the mood and fall asleep faster.', '7′30″', 'assets/course-card-hd-2.png', null, 'shot'],
+      ['Neck and Shoulder Relief', 'Targeted exercises to ease stiffness from screen time.', '12′', 'assets/course-card-hd-3.png', null, 'shot'],
+      ['Hip Opener Flow', 'Movements designed to increase hip mobility and reduce lower back pain.', '13′', 'assets/course-card-hd-4.png', null, 'shot'],
+    ];
+
+    const foodsSeed = [
+      ['Breakfast', 61, 'assets/icon-fork.svg'],
+      ['Lunch', 121, 'assets/icon-nutrition.svg'],
+      ['Lunch', 64, 'assets/icon-cook.svg'],
+      ['other', 87, 'assets/icon-fork.svg'],
+    ];
+    let foodIndex = 0;
+    let intake = 273;
+    const maxKcal = 600;
+    const todayDate = new Date(2026, 4, 26);
+    let weekOffset = 0;
+
+    function renderPlan() {
+      document.getElementById('planList').innerHTML = planItems.map(([name, sub, img, pct, done]) => `
+        <div class="plan-item ${done ? 'done' : ''}">
+          <button class="check-hot" aria-label="toggle ${name}">
+            <img class="check-icon" src="${done ? 'assets/check-done.svg' : 'assets/check-empty.svg'}" alt="">
+          </button>
+          <div class="plan-copy">
+            <p class="plan-name">${name}</p>
+            <p class="plan-sub">${sub}</p>
+            ${pct ? `<div class="bar"><span style="width:${pct}%"></span></div>` : ''}
+          </div>
+          <img class="plan-art" src="${img}" alt="">
+        </div>`).join('');
+
+      document.querySelectorAll('.check-hot').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = btn.closest('.plan-item');
+          item.classList.toggle('done');
+          btn.querySelector('img').src = item.classList.contains('done') ? 'assets/check-done.svg' : 'assets/check-empty.svg';
+        });
+      });
+    }
+
+    function renderCourses(skeleton = false) {
+      const list = document.getElementById('courseList');
+      if (skeleton) {
+        list.innerHTML = Array.from({ length: 3 }, () => `
+          <div class="course skeleton"><div class="course-media"></div><div class="skeleton-line" style="width:72%"></div><div class="skeleton-line" style="width:92%;height:16px"></div></div>
+        `).join('');
+        return;
+      }
+      list.innerHTML = courses.map(([title, desc, dur, bg, person, personClass]) => `
+        <button class="course">
+          <div class="course-media">
+            ${personClass === 'shot' ? `<img class="card-shot" src="${bg}" alt="">` : `<img class="bg" src="${bg}" alt=""><img class="${personClass}" src="${person}" alt="">`}<span class="duration"><img src="assets/time-combined.svg" alt="">${dur}</span>
+          </div>
+          <div class="course-copy">
+            <div><h2>${title}</h2><p>${desc}</p></div>
+            <img src="assets/icon-right.svg" alt="" width="28" height="28">
+          </div>
+        </button>`).join('');
+
+      document.querySelectorAll('.course').forEach(btn => {
+        btn.addEventListener('click', () => showContinue(true));
+      });
+    }
+
+    function showContinue(refresh) {
+      const card = document.getElementById('continueCard');
+      card.classList.remove('hidden-card');
+      if (refresh) {
+        card.classList.add('skeleton');
+        setTimeout(() => card.classList.remove('skeleton'), 700);
+      }
+    }
+
+    function renderFoods(initial = true) {
+      const foods = document.getElementById('foods');
+      if (initial) {
+        foods.innerHTML = foodsSeed.slice(0, 3).map(foodCard).join('');
+      } else {
+        const item = foodsSeed[foodIndex % foodsSeed.length];
+        foods.insertAdjacentHTML('beforeend', foodCard(item));
+        intake = Math.min(maxKcal, intake + item[1]);
+        foodIndex += 1;
+        updateKcal();
+        foods.scrollLeft = foods.scrollWidth;
+      }
+    }
+
+    function foodCard([label, kcal, icon]) {
+      return `<div class="food-card"><img src="${icon}" alt=""><div><small>${label}</small><b>${kcal} kcal</b></div></div>`;
+    }
+
+    function updateKcal() {
+      document.getElementById('intakeVal').textContent = intake;
+      document.getElementById('remainingVal').textContent = Math.max(0, maxKcal - intake);
+      const pct = Math.min(1, intake / maxKcal);
+      const arcWrap = document.querySelector('.arc-wrap');
+      const progress = document.querySelector('.arc-progress');
+      const length = progress.getTotalLength();
+      progress.style.setProperty('--arc-len', length);
+      progress.style.setProperty('--dash', length * (1 - pct));
+      const point = progress.getPointAtLength(length * pct);
+      const nextPoint = progress.getPointAtLength(Math.min(length, length * pct + 2));
+      const rotation = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * 180 / Math.PI;
+      arcWrap.style.setProperty('--bubble-x', `${point.x}px`);
+      arcWrap.style.setProperty('--bubble-y', `${point.y}px`);
+      arcWrap.style.setProperty('--bubble-rot', `${rotation}deg`);
+    }
+
+    function renderStatusGrid() {
+      const specs = [
+        { title: 'Heart Rate', value: '84', unit: 'BPM', icon: 'assets/track-like.svg', color: '#ea387f', min: '0:00', max: '24:00', type: 'heart', action: 'assets/track-right.svg' },
+        { title: 'Hydration', value: '1.25', unit: 'L', icon: 'water', color: '#048ddb', min: '0', max: '6 L', type: 'water', action: 'assets/track-add.svg' },
+        { title: 'Steps', value: '6,127', unit: 'Stp', icon: 'assets/track-steps.svg', color: '#a62cce', min: '0', max: '15000 stp', type: 'steps', action: 'assets/track-right.svg', range: 'assets/track-steps-range.svg', caret: '48px' },
+        { title: 'Sleep', value: '8', unit: 'h|24|m', icon: 'assets/track-sleep.svg', color: '#f5940c', min: 'low', max: 'best', type: 'sleep', action: 'assets/track-right.svg', range: 'assets/track-sleep-range.svg', caret: '79px' },
+      ];
+      const repeated = [...specs, ...specs.slice(0, 3)];
+      const bars = [6,18,38,10,6,4,28,18,24,38,18,6,10,14,4,8,12,8,20,36,32];
+      document.getElementById('statusGrid').innerHTML = repeated.map((item) => `
+        <article class="metric-card">
+          <div class="metric-head" style="color:${item.color}">
+            <span class="metric-title">${metricIcon(item)}${item.title}</span>
+            <img src="${item.action}" alt="" width="18" height="18">
+          </div>
+          <div class="metric-value">${metricValue(item)}</div>
+          ${metricChart(item, bars)}
+          <div class="metric-foot"><span>${item.min}</span><span>${item.max}</span></div>
+        </article>
+      `).join('');
+    }
+
+    function metricIcon(item) {
+      if (item.icon === 'water') {
+        return `<span class="metric-icon-water"><img src="assets/track-water-top.svg" alt=""><img src="assets/track-water-bottom.svg" alt=""></span>`;
+      }
+      return `<img src="${item.icon}" alt="">`;
+    }
+
+    function metricValue(item) {
+      if (item.type === 'sleep') {
+        return `<span class="number">8</span><small>h</small><span class="number">24</span><small>m</small>`;
+      }
+      return `<span class="number">${item.value}</span><small>${item.unit}</small>`;
+    }
+
+    function metricChart(item, bars) {
+      if (item.type === 'heart') {
+        return `<div class="mini-bars">${bars.map(h => `<i style="--h:${h}px;--c:${item.color}"></i>`).join('')}</div>`;
+      }
+      if (item.type === 'water') {
+        return `<div class="mini-bars water-bars">${bars.map((_, idx) => `<i style="--h:42px;--c:${item.color};--on:${idx < 6 ? 1 : 0}"></i>`).join('')}</div>`;
+      }
+      return `<div class="range-asset" style="--caret-left:${item.caret}"><img class="range-img" src="${item.range}" alt=""><img class="range-caret" src="assets/track-range-caret.svg" alt=""></div>`;
+    }
+
+    function switchPage(target) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === target));
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.target === target));
+      document.getElementById('tabs').dataset.active = target;
+      const screen = document.getElementById(target);
+      if (screen) screen.scrollTop = 0;
+      updateTopFade(screen);
+    }
+
+    function updateTopFade(screen) {
+      if (!screen || !screen.classList.contains('soft-bg')) return;
+      const fade = Math.min(1, screen.scrollTop / 90);
+      screen.style.setProperty('--top-fade', fade.toFixed(3));
+    }
+
+    function bindTopFade() {
+      document.querySelectorAll('.screen.soft-bg').forEach(screen => {
+        updateTopFade(screen);
+        screen.addEventListener('scroll', () => updateTopFade(screen), { passive: true });
+      });
+    }
+
+    function renderDateRow() {
+      const row = document.getElementById('dateRow');
+      const start = new Date(todayDate);
+      start.setDate(todayDate.getDate() - 2 + weekOffset * 7);
+      const labels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      row.innerHTML = Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(start);
+        date.setDate(start.getDate() + index);
+        const isToday = date.toDateString() === todayDate.toDateString();
+        const isFuture = date > todayDate;
+        const label = isToday ? 'today' : labels[date.getDay()];
+        return `<button class="date-cell ${isToday ? 'active' : ''} ${isFuture ? 'future' : ''}" ${isFuture ? 'disabled' : ''}><small>${label}</small><span>${date.getDate()}</span></button>`;
+      }).join('');
+      row.querySelectorAll('.date-cell:not(.future)').forEach(cell => cell.addEventListener('click', () => {
+        row.querySelectorAll('.date-cell').forEach(c => c.classList.remove('active'));
+        cell.classList.add('active');
+        refreshStatusGrid();
+      }));
+    }
+
+    function stepWeek(delta) {
+      const row = document.getElementById('dateRow');
+      row.style.transform = `translateX(${delta < 0 ? 44 : -44}px)`;
+      row.style.opacity = '.15';
+      setTimeout(() => {
+        weekOffset += delta;
+        renderDateRow();
+        row.style.transition = 'none';
+        row.style.transform = `translateX(${delta < 0 ? -44 : 44}px)`;
+        requestAnimationFrame(() => {
+          row.style.transition = '';
+          row.style.transform = 'translateX(0)';
+          row.style.opacity = '1';
+          refreshStatusGrid();
+        });
+      }, 160);
+    }
+
+    function refreshStatusGrid() {
+      const grid = document.getElementById('statusGrid');
+      grid.style.opacity = '.45';
+      grid.style.filter = 'blur(1px)';
+      setTimeout(() => { grid.style.opacity = '1'; grid.style.filter = 'none'; }, 520);
+    }
+
+    function chooseMood(mood) {
+      const today = document.getElementById('today');
+      today.scrollTop = 0;
+      setTimeout(() => { today.scrollTop = 0; }, 0);
+      today.classList.remove('today-first');
+      today.classList.add('soft-bg');
+      document.getElementById('moodChooser').hidden = true;
+      document.getElementById('todayResult').hidden = false;
+      requestAnimationFrame(() => document.getElementById('todayResult').classList.add('result-visible'));
+      document.getElementById('todayTitle').textContent = 'How would you like to start today ?';
+      document.getElementById('moodLabel').textContent = mood;
+      document.getElementById('todayPlanHead').classList.add('compact');
+      typeAi(mood.toLowerCase());
+    }
+
+    function typeAi(mood) {
+      const full = `Based on your current state of ${mood}, I recommend the following exercises to help you stick to your weight loss goals.Based on your current state of ${mood}, I recommend the following exercises to help you stick to your weight loss goals.`;
+      const ai = document.getElementById('aiText');
+      const rec = document.getElementById('recommendCard');
+      ai.textContent = '';
+      rec.classList.remove('show');
+      let i = 0;
+      clearInterval(window.typeTimer);
+      window.typeTimer = setInterval(() => {
+        ai.textContent = full.slice(0, i);
+        i += 2;
+        if (i > full.length) {
+          clearInterval(window.typeTimer);
+          ai.innerHTML = full.replaceAll(mood, `<b>${mood}</b>`);
+          rec.classList.add('show');
+        }
+      }, 18);
+    }
+
+    renderPlan();
+    renderCourses();
+    renderFoods(true);
+    renderDateRow();
+    updateKcal();
+    renderStatusGrid();
+    bindTopFade();
+
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchPage(tab.dataset.target)));
+    document.querySelectorAll('.mood').forEach(btn => btn.addEventListener('click', () => chooseMood(btn.dataset.mood)));
+    document.getElementById('moreDetails').addEventListener('click', () => switchPage('track'));
+    document.getElementById('changeMood').addEventListener('click', () => document.getElementById('moodModal').classList.add('show'));
+    document.getElementById('moodModal').addEventListener('click', e => {
+      if (e.target.id === 'moodModal') e.currentTarget.classList.remove('show');
+      if (e.target.dataset.mood) {
+        e.currentTarget.classList.remove('show');
+        chooseMood(e.target.dataset.mood);
+      }
+    });
+    document.querySelectorAll('#moveTabs .chip').forEach(chip => chip.addEventListener('click', () => {
+      document.querySelectorAll('#moveTabs .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderCourses(true);
+      setTimeout(() => renderCourses(false), 1000);
+    }));
+    document.getElementById('addFood').addEventListener('click', () => renderFoods(false));
+    let dateDragStart = 0;
+    const dateRow = document.getElementById('dateRow');
+    dateRow.addEventListener('pointerdown', e => { dateDragStart = e.clientX; });
+    dateRow.addEventListener('pointerup', e => {
+      const dx = e.clientX - dateDragStart;
+      if (Math.abs(dx) > 36) stepWeek(dx > 0 ? -1 : 1);
+    });
+
+    if (location.hash === '#today-result') {
+      chooseMood('Relaxed');
+    } else if (location.hash === '#move') {
+      switchPage('move');
+    } else if (location.hash === '#move-continue') {
+      switchPage('move');
+      showContinue(false);
+    } else if (location.hash === '#track') {
+      switchPage('track');
+    }
+  </script>
+</body>
+</html>

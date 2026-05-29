@@ -1,0 +1,8 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 143 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Frame 141">
+<path id="Rectangle 127" d="M0 3C0 1.34315 1.34315 0 3 0H33.25C33.8023 0 34.25 0.447715 34.25 1V16C34.25 16.5523 33.8023 17 33.25 17H3C1.34315 17 0 15.6569 0 14V3Z" fill="var(--fill-0, #A62CCE)" fill-opacity="0.2"/>
+<path id="Rectangle 128" d="M36.25 1C36.25 0.447715 36.6977 0 37.25 0H69.5C70.0523 0 70.5 0.447715 70.5 1V16C70.5 16.5523 70.0523 17 69.5 17H37.25C36.6977 17 36.25 16.5523 36.25 16V1Z" fill="var(--fill-0, #A62CCE)" fill-opacity="0.4"/>
+<path id="Rectangle 129" d="M72.5 1C72.5 0.447715 72.9477 0 73.5 0H105.75C106.302 0 106.75 0.447715 106.75 1V16C106.75 16.5523 106.302 17 105.75 17H73.5C72.9477 17 72.5 16.5523 72.5 16V1Z" fill="var(--fill-0, #A62CCE)" fill-opacity="0.6"/>
+<path id="Rectangle 130" d="M108.75 1C108.75 0.447715 109.198 0 109.75 0H140C141.657 0 143 1.34315 143 3V14C143 15.6569 141.657 17 140 17H109.75C109.198 17 108.75 16.5523 108.75 16V1Z" fill="var(--fill-0, #A62CCE)" fill-opacity="0.8"/>
+</g>
+</svg>
