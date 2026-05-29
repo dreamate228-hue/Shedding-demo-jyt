@@ -21,6 +21,12 @@
 
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
+    .liquid-filter-defs {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
 
     html,
     body {
@@ -51,7 +57,13 @@
     }
 
     @media (max-width: 500px) {
-      body { place-items: start; }
+      body { place-items: center; }
+      .phone {
+        width: 100vw;
+        height: 100dvh;
+        min-height: 100dvh;
+        box-shadow: none;
+      }
     }
 
     .screen {
@@ -60,7 +72,7 @@
       display: none;
       overflow-y: auto;
       overflow-x: hidden;
-      padding-bottom: 128px;
+      padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
       scrollbar-width: none;
       transition: background .45s ease;
       overscroll-behavior: contain;
@@ -80,6 +92,7 @@
 
     .soft-bg {
       --top-fade: 0;
+      --top-rgb: 245,245,245;
       background:
         radial-gradient(120% 32% at 23% -4%, rgba(141, 221, 239, .75), transparent 70%),
         radial-gradient(100% 28% at 95% -6%, rgba(36, 174, 253, .55), transparent 72%),
@@ -100,7 +113,11 @@
       z-index: 0;
     }
 
-    .today-first { background: linear-gradient(180deg, #24aefd 0%, #8dddef 100%); }
+    .today-first {
+      --top-fade: 0;
+      --top-rgb: 36,174,253;
+      background: linear-gradient(180deg, #24aefd 0%, #8dddef 100%);
+    }
     .blue-layer {
       position: absolute;
       inset: 0;
@@ -113,12 +130,51 @@
       z-index: 0;
     }
     .today-first .blue-layer { opacity: 1; }
-    #today > :not(.blue-layer) {
+    #today > :not(.blue-layer):not(.top-sticky) {
       position: relative;
       z-index: 1;
     }
 
-    .soft-bg > :not(.blue-layer) {
+    .soft-bg > :not(.blue-layer):not(.top-sticky) {
+      position: relative;
+      z-index: 1;
+    }
+
+    .top-sticky {
+      position: sticky;
+      top: 0;
+      height: 107px;
+      z-index: 35;
+      pointer-events: none;
+    }
+
+    .top-sticky::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 115px;
+      pointer-events: none;
+      background: rgb(var(--top-rgb, 245,245,245));
+      opacity: var(--top-fade, 0);
+      transition: opacity .16s ease-out;
+    }
+
+    .top-sticky::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 115px;
+      height: 28px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgb(var(--top-rgb, 245,245,245)) 0%, rgba(var(--top-rgb, 245,245,245), 0) 100%);
+      opacity: var(--top-fade, 0);
+      transition: opacity .16s ease-out;
+    }
+
+    .top-sticky > * {
       position: relative;
       z-index: 1;
     }
@@ -134,21 +190,16 @@
       z-index: 35;
       color: #000;
       pointer-events: none;
-      background: rgba(245,245,245,var(--top-fade, 0));
-      backdrop-filter: blur(10px) saturate(1.1);
-      -webkit-backdrop-filter: blur(10px) saturate(1.1);
-      transition: background .12s linear;
+      background: transparent;
     }
 
     .today-first .statusbar {
       color: #fff;
-      background: linear-gradient(180deg, rgba(36,174,253,.72) 0%, rgba(36,174,253,.34) 72%, rgba(36,174,253,0) 100%);
+      background: transparent;
     }
 
     .screen:not(#today) .statusbar {
-      position: absolute;
-      left: 0;
-      right: 0;
+      position: relative;
       top: 0;
     }
 
@@ -177,7 +228,7 @@
     .indicators img { display: block; height: 12px; object-fit: contain; }
     .indicators img:nth-child(1) { width: 18px; }
     .indicators img:nth-child(2) { width: 17px; }
-    .indicators img:nth-child(3) { width: 25px; height: 11px; }
+    .indicators img:nth-child(3) { width: 25px; height: 12px; }
     .soft-bg .indicators img { filter: brightness(0); }
 
     .top-row {
@@ -233,13 +284,14 @@
 
     .mood-row {
       margin: 27px 16px 0;
-      display: flex;
-      gap: 8px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: clamp(8px, 2.2vw, 12px);
       align-items: center;
     }
 
     .mood {
-      width: 66px;
+      min-width: 0;
       border: 0;
       background: transparent;
       padding: 0;
@@ -249,22 +301,29 @@
     }
 
     .mood-img {
-      width: 66px;
-      height: 66px;
+      width: min(100%, 84px);
+      aspect-ratio: 1;
       border-radius: 16px;
       padding: 3px;
       background: linear-gradient(180deg, rgba(245,250,255,.9), rgba(223,240,255,.9));
       box-shadow: inset -0.5px -0.5px 1px #fff, inset 1px 1px 1px #fff;
       display: block;
-      margin-bottom: 7px;
+      margin: 0 auto 7px;
     }
 
     .mood-img img {
-      width: 60px;
-      height: 60px;
+      width: 100%;
+      height: 100%;
       display: block;
       object-fit: cover;
       filter: drop-shadow(0 0 4px #fff);
+    }
+    .mood-label {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
     }
 
     .section-head {
@@ -312,11 +371,11 @@
       border-radius: 20px;
       box-shadow: var(--shadow);
       overflow: hidden;
-      padding: 8px 0;
+      padding: 16px 0;
     }
 
     .plan-item {
-      min-height: 78px;
+      height: 86px;
       display: grid;
       grid-template-columns: 48px 1fr 88px;
       align-items: center;
@@ -325,23 +384,23 @@
       position: relative;
     }
 
-    .plan-item:not(:last-child) {
-      margin-bottom: 8px;
+    .plan-divider {
+      height: 16px;
+      display: flex;
+      align-items: center;
+      width: 100%;
     }
 
-    .plan-item:not(:last-child)::after {
+    .plan-divider::before {
       content: "";
-      position: absolute;
-      left: 48px;
-      right: 0;
-      bottom: -4px;
+      width: 100%;
       height: .5px;
       background: rgba(230,230,231,.72);
     }
 
     .check-hot {
       width: 48px;
-      height: 78px;
+      height: 86px;
       border: 0;
       background: transparent;
       position: relative;
@@ -572,32 +631,20 @@
       align-items: center;
       justify-content: space-between;
       position: sticky;
-      top: 0;
+      top: 67px;
       z-index: 25;
-      background: rgba(245,245,245,var(--top-fade, 0));
-      backdrop-filter: blur(22px) saturate(1.2);
-      -webkit-backdrop-filter: blur(22px) saturate(1.2);
-      transition: background .12s linear;
+      background: transparent;
     }
     .screen:not(#today) .page-title-row {
       position: absolute;
       left: 0;
       right: 0;
-      top: 59px;
+      top: 67px;
       margin-top: 0;
       z-index: 34;
     }
     .page-title-row::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: -30px;
-      height: 30px;
-      pointer-events: none;
-      opacity: var(--top-fade, 0);
-      background: linear-gradient(180deg, rgba(245,245,245,.86), rgba(245,245,245,0));
-      transition: opacity .12s linear;
+      content: none;
     }
     .page-title-row h1 { font-size: 24px; }
 
@@ -615,7 +662,7 @@
       transition: opacity .48s cubic-bezier(.2,.8,.2,1), transform .48s cubic-bezier(.2,.8,.2,1), margin .48s cubic-bezier(.2,.8,.2,1), min-height .48s cubic-bezier(.2,.8,.2,1), padding .48s cubic-bezier(.2,.8,.2,1), height .48s cubic-bezier(.2,.8,.2,1);
     }
     .screen:not(#today) .continue-card {
-      margin-top: 139px;
+      margin-top: 32px;
     }
     .screen:not(#today) .continue-card.hidden-card {
       margin-top: 0;
@@ -632,7 +679,7 @@
       overflow: hidden;
     }
     .screen:not(#today) .continue-card.hidden-card + .tabs-scroll {
-      margin-top: 135px;
+      margin-top: 28px;
     }
 
     .continue-card h2 {
@@ -789,7 +836,7 @@
       transition: transform .25s ease, opacity .25s ease;
     }
     .screen:not(#today) .date-row {
-      margin-top: 135px;
+      margin-top: 32px;
     }
     .date-cell {
       width: 40px;
@@ -839,41 +886,121 @@
       border-radius: 20px;
       position: relative;
       color: var(--ink);
-      padding: 16px 12px 12px;
-      overflow: hidden;
-      background: #fff;
-      box-shadow: var(--shadow), inset -0.5px -0.5px 1px #fff, inset 1px 1px 1px #fff;
+      padding: 0;
+      overflow: visible;
+      background: transparent;
+      box-shadow: none;
     }
-    .diet-card > * { position: relative; z-index: 1; }
+    .diet-card > * { position: relative; z-index: 2; }
+    .diet-blue-card {
+      position: absolute;
+      inset: 6px;
+      border-radius: 20px;
+      background: #3baafa;
+      box-shadow: var(--shadow), inset -0.5px -0.5px 1px #fff, inset 1px 1px 1px #fff;
+      z-index: 0;
+    }
+    .diet-mode-button {
+      position: absolute;
+      right: 24px;
+      top: 15px;
+      width: 95px;
+      height: 28px;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 1.4;
+      text-transform: capitalize;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .diet-mode-button::before {
+      content: "";
+      position: absolute;
+      right: -12px;
+      top: -9px;
+      width: 130px;
+      height: 44px;
+    }
+    .diet-mode-button img { width: 20px; height: 20px; filter: brightness(0) invert(1); }
+    .diet-mode-button span {
+      width: 63px;
+      flex: 0 0 63px;
+      text-align: center;
+    }
+    .diet-shell {
+      height: 356px;
+      position: relative;
+      filter: drop-shadow(2px 4px 8px rgba(52,84,242,.08));
+    }
     .diet-top {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      height: 36px;
-      padding: 0 4px 0 8px;
+      height: 49px;
+      width: calc(100% - 155px);
+      padding: 10px 36px 0 20px;
+      background: #fff;
+      border-top-left-radius: 20px;
+      z-index: 3;
     }
-    .remaining { color: var(--muted); font-size: 16px; }
-    .remaining b { color: var(--blue); font-size: 28px; margin-left: 4px; }
-    .diet-label {
+    .remaining {
+      color: var(--muted);
+      font-size: 16px;
+      display: flex;
+      align-items: baseline;
+      gap: 0;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .remaining b { color: var(--blue); font-size: 28px; margin-left: 8px; margin-right: 4px; flex: 0 0 auto; }
+    .remaining span { flex: 0 0 auto; }
+    .diet-corner {
+      position: absolute;
+      top: 0;
+      right: -1px;
+      width: 158px;
+      height: 49px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .diet-content {
+      position: relative;
+      height: 307px;
+      background: #fff;
+      border-radius: 0 20px 20px 20px;
+      overflow: hidden;
+    }
+    .weight-message {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.3;
+      white-space: nowrap;
       display: none;
-      align-items: center;
-      gap: 16px;
-      color: #fff;
-      font-weight: 600;
-      font-size: 20px;
     }
-    .diet-label img { width: 20px; height: 20px; filter: brightness(0) invert(1); }
+    .diet-card[data-mode="weight"] .diet-specific { display: none; }
+    .diet-card[data-mode="weight"] .weight-message { display: block; }
     .arc-wrap {
+      --arc-left: calc((100% - 285px) / 2);
+      --arc-top: 19px;
       height: 214px;
-      margin-top: 2px;
       position: relative;
     }
     .arc {
       position: absolute;
-      left: 14px;
-      top: 6px;
-      width: 333px;
-      height: 172px;
+      left: var(--arc-left);
+      top: var(--arc-top);
+      width: 285px;
+      height: 126px;
       overflow: visible;
     }
     .arc svg { width: 100%; height: 100%; display: block; overflow: visible; }
@@ -884,69 +1011,92 @@
     }
     .arc-track { stroke: #dfe5e9; }
     .arc-progress {
-      stroke: #4ab9e5;
+      stroke: url(#diet-progress-gradient);
       stroke-dasharray: var(--arc-len, 440);
       stroke-dashoffset: var(--dash, 220);
-      transition: stroke-dashoffset .45s ease;
+      opacity: var(--progress-visibility, 1);
+      transition: stroke-dashoffset .42s cubic-bezier(.2,.8,.2,1), opacity .18s ease;
     }
     .bubbles {
       position: absolute;
-      width: 38px;
-      height: 24px;
-      left: calc(14px + var(--bubble-x, 188px) - 9px);
-      top: calc(6px + var(--bubble-y, 42px) - 9px);
-      opacity: 1;
-      transform: rotate(var(--bubble-rot, 0deg));
-      transform-origin: 8px 8px;
-      transition: left .45s ease, top .45s ease, transform .45s ease;
+      width: 28px;
+      height: 16px;
+      left: var(--arc-left);
+      top: var(--arc-top);
+      opacity: var(--progress-visibility, 1);
+      transform: translate3d(calc(var(--bubble-x, 188px) - 20px), calc(var(--bubble-y, 42px) - 4px), 0) rotate(var(--bubble-rot, 0deg));
+      transform-origin: 21px 5px;
+      transition: opacity .18s ease;
       pointer-events: none;
       z-index: 4;
+      mix-blend-mode: lighten;
     }
     .bubbles span {
       position: absolute;
       width: 5px;
       height: 5px;
       border-radius: 50%;
-      background: rgba(91, 217, 232, .95);
+      background: var(--bubble-color, rgba(91, 217, 232, .95));
+      mix-blend-mode: screen;
     }
-    .bubbles span:nth-child(1) { left: 1px; top: 6px; width: 6px; height: 6px; background: rgba(96, 229, 238, .7); }
-    .bubbles span:nth-child(2) { left: 9px; top: 9px; width: 8px; height: 8px; }
-    .bubbles span:nth-child(3) { left: 18px; top: 5px; width: 13px; height: 13px; background: rgba(91, 217, 232, .72); }
-    .bubbles span:nth-child(4) { left: 31px; top: 12px; width: 4px; height: 4px; background: rgba(96, 229, 238, .7); }
+    .bubbles span:nth-child(1) { left: 18.7px; top: 0; width: 6px; height: 6px; background: var(--bubble-soft-color, rgba(96, 229, 238, .72)); }
+    .bubbles span:nth-child(2) { left: 9.1px; top: 4.7px; width: 4px; height: 4px; background: var(--bubble-color, rgba(91, 217, 232, .86)); }
+    .bubbles span:nth-child(3) { left: 15.2px; top: 8.8px; width: 5px; height: 5px; background: var(--bubble-mid-color, rgba(91, 217, 232, .72)); }
+    .bubbles span:nth-child(4) { left: 4.4px; top: 9.1px; width: 3px; height: 3px; background: var(--bubble-soft-color, rgba(96, 229, 238, .68)); }
+    .bubbles span:nth-child(5) { left: 0; top: 4.9px; width: 2px; height: 2px; background: var(--bubble-soft-color, rgba(96, 229, 238, .62)); }
     .jelly {
       position: absolute;
-      left: 118px;
+      left: 50%;
       top: 92px;
       width: 109px;
       height: 126px;
+      margin-left: -54.5px;
       animation: jellyFloat 5s ease-in-out infinite;
     }
     .jelly img.body { position: absolute; inset: 0 0 auto; width: 109px; height: 113px; }
-    .jelly img.eye-l {
+    .jelly-eyes {
       position: absolute;
-      width: 29px;
-      height: 34px;
-      left: 33px;
-      top: 21px;
+      left: 23.5px;
+      top: 20px;
+      width: 62px;
+      height: 36px;
+      pointer-events: none;
+      transform: translate3d(var(--eyes-x, 0px), var(--eyes-y, 0px), 0);
+      transition: transform .36s cubic-bezier(.2,.8,.2,1);
     }
-    .jelly img.eye-r {
+    .jelly-eye-white {
       position: absolute;
+      top: 0;
       width: 29px;
-      height: 34px;
-      left: 66px;
-      top: 22px;
+      height: 35px;
+    }
+    .jelly-eye-white.left { left: 0; }
+    .jelly-eye-white.right {
+      left: 33px;
+      transform: rotate(180deg) scaleY(-1);
+    }
+    .jelly-pupils {
+      position: absolute;
+      left: 7px;
+      top: 5px;
+      width: 52px;
+      height: 22px;
+      transform: translate3d(var(--pupil-x, 0px), var(--pupil-y, 0px), 0);
+      transition: transform .32s cubic-bezier(.2,.8,.2,1);
+      pointer-events: none;
     }
     .jelly-shadow {
       position: absolute;
-      left: 139px;
+      left: 50%;
       top: 210px;
       width: 68px;
       height: 8px;
+      margin-left: -34px;
       animation: shadowPulse 5s ease-in-out infinite;
     }
     .diet-stats {
       position: absolute;
-      top: 218px;
+      top: 161px;
       left: 24px;
       right: 24px;
       display: flex;
@@ -966,6 +1116,7 @@
       display: flex;
       gap: 10px;
       align-items: stretch;
+      transition: gap .42s cubic-bezier(.2,.8,.2,1);
     }
     .food-strip::before,
     .food-strip::after {
@@ -976,21 +1127,30 @@
       width: 26px;
       pointer-events: none;
       z-index: 2;
+      opacity: 0;
+      transition: opacity .18s ease;
     }
     .food-strip::before {
       left: 0;
       background: linear-gradient(90deg, #fff, rgba(255,255,255,0));
     }
     .food-strip::after {
-      right: 36px;
+      right: 46px;
       background: linear-gradient(270deg, #fff, rgba(255,255,255,0));
     }
+    .food-strip.can-scroll-left::before,
+    .food-strip.can-scroll-right::after {
+      opacity: 1;
+    }
     .foods {
-      width: 291px;
+      width: auto;
+      min-width: 0;
+      flex: 1 1 auto;
       display: flex;
       gap: 8px;
       overflow-x: auto;
       scrollbar-width: none;
+      transition: flex-basis .42s cubic-bezier(.2,.8,.2,1), opacity .24s ease;
     }
     .foods::-webkit-scrollbar { display: none; }
     .food-card {
@@ -1003,6 +1163,13 @@
       align-items: center;
       gap: 8px;
       padding: 7px 8px;
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      transition: opacity .24s ease, transform .28s cubic-bezier(.2,.8,.2,1);
+    }
+    .food-card.entering {
+      opacity: 0;
+      transform: translateX(14px) scale(.98);
     }
     .food-card img { width: 24px; height: 24px; }
     .food-card small {
@@ -1019,6 +1186,7 @@
     }
     .food-add {
       width: 36px;
+      flex: 0 0 36px;
       border: 0;
       border-radius: 8px;
       background: #f5f5f5;
@@ -1030,8 +1198,51 @@
       justify-content: center;
       cursor: pointer;
       font-size: 12px;
+      position: relative;
+      overflow: hidden;
+      transition: flex-basis .42s cubic-bezier(.2,.8,.2,1), width .42s cubic-bezier(.2,.8,.2,1), transform .42s cubic-bezier(.2,.8,.2,1);
     }
     .food-add img { width: 18px; height: 18px; }
+    .food-add-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+      transition: opacity .16s ease, transform .16s ease;
+    }
+    .food-strip.add-shrinking .food-add-content {
+      opacity: 0;
+      transform: scale(.94);
+    }
+    .food-strip.add-revealing .food-add-content {
+      opacity: 0;
+      transform: scale(.94);
+    }
+    .food-strip.empty .foods {
+      width: 0;
+      flex-basis: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .food-strip.empty {
+      gap: 0;
+    }
+    .food-strip.empty .food-add {
+      width: 100%;
+      flex-basis: 100%;
+    }
+    .food-strip.empty::before,
+    .food-strip.empty::after {
+      opacity: 0;
+    }
+    .food-strip.date-loading,
+    .food-strip.date-loading .foods,
+    .food-strip.date-loading .food-add,
+    .food-strip.date-loading .food-add-content,
+    .food-strip.date-loading .food-card {
+      transition: none !important;
+    }
 
     .status-grid {
       margin: 0 16px 22px;
@@ -1171,14 +1382,14 @@
       left: 0;
       right: 0;
       bottom: 0;
-      height: 99px;
+      height: calc(99px + env(safe-area-inset-bottom, 0px));
       pointer-events: none;
     }
 
     .liquid-tabs {
       position: absolute;
       left: 50%;
-      bottom: 35px;
+      bottom: calc(35px + env(safe-area-inset-bottom, 0px));
       width: 271px;
       height: 60px;
       transform: translateX(-50%);
@@ -1188,22 +1399,63 @@
       align-items: center;
       padding: 3px;
       pointer-events: auto;
-      background: linear-gradient(135deg, rgba(255,255,255,.42), rgba(255,255,255,.18));
-      border: 1px solid rgba(255,255,255,.78);
-      box-shadow: 0 18px 38px rgba(31,47,75,.18), inset 0 1px 0 rgba(255,255,255,.88), inset 0 -1px 0 rgba(255,255,255,.35);
-      backdrop-filter: blur(36px) saturate(1.9);
-      -webkit-backdrop-filter: blur(36px) saturate(1.9);
+      background: rgba(255,255,255,.055);
+      border: 0;
+      box-shadow:
+        0 18px 36px rgba(18, 30, 48, .18),
+        0 2px 10px rgba(255,255,255,.16),
+        inset .5px .5px 0 rgba(255,255,255,.38),
+        inset -.5px -.5px 0 rgba(255,255,255,.24);
+      backdrop-filter: url(#bottom-tab-liquid-filter) blur(.8px) contrast(1.18) brightness(1.04) saturate(1.18);
+      -webkit-backdrop-filter: blur(.8px) contrast(1.18) brightness(1.04) saturate(1.18);
       overflow: hidden;
+      isolation: isolate;
     }
 
     .liquid-tabs::before {
       content: "";
       position: absolute;
-      inset: 1px;
+      inset: 0;
       border-radius: inherit;
-      background: linear-gradient(140deg, rgba(255,255,255,.62), rgba(255,255,255,.22));
+      padding: 2px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.42), rgba(255,255,255,.065) 45%, rgba(255,255,255,.24) 100%);
+      backdrop-filter: url(#bottom-tab-rim-filter) blur(6px) saturate(1.45) contrast(1.06) brightness(1.08);
+      -webkit-backdrop-filter: blur(6px) saturate(1.45) contrast(1.06) brightness(1.08);
+      mix-blend-mode: plus-lighter;
+      opacity: .55;
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
       pointer-events: none;
-      mix-blend-mode: screen;
+      z-index: 0;
+    }
+
+    .liquid-tabs::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 1;
+      background:
+        radial-gradient(140% 110% at 16% 0%, rgba(255,255,255,.13), rgba(255,255,255,0) 46%),
+        radial-gradient(130% 100% at 82% 100%, rgba(255,255,255,.08), rgba(255,255,255,0) 48%),
+        rgba(246,250,253,.025);
+      backdrop-filter: blur(1.8px) saturate(1.12);
+      -webkit-backdrop-filter: blur(1.8px) saturate(1.12);
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,.58),
+        inset 0 -1px 1px rgba(255,255,255,.22),
+        inset 1px 0 1px rgba(255,255,255,.2),
+        inset -1px 0 1px rgba(255,255,255,.14),
+        inset .7px .7px 4px rgba(255,255,255,.12),
+        inset -.7px -.7px 3px rgba(255,255,255,.08);
     }
 
     .tab-highlight {
@@ -1213,9 +1465,60 @@
       width: 88px;
       height: 54px;
       border-radius: 999px;
-      background: rgba(255,255,255,.7);
-      box-shadow: 0 10px 22px rgba(31,47,75,.12), inset 0 1px 1px #fff, inset 0 -1px 4px rgba(255,255,255,.65);
+      background:
+        radial-gradient(130% 110% at 18% 4%, rgba(255,255,255,.72), rgba(255,255,255,.26) 58%),
+        rgba(255,255,255,.48);
+      box-shadow:
+        0 10px 24px rgba(31,47,75,.13),
+        inset 1.4px 1.4px 7px rgba(255,255,255,.34),
+        inset -1.4px -1.4px 5px rgba(255,255,255,.22),
+        inset .7px .7px 0 rgba(255,255,255,.58),
+        inset -.7px -.7px 0 rgba(255,255,255,.4);
+      backdrop-filter: url(#bottom-tab-highlight-filter) blur(14px) contrast(1.1) brightness(1.07) saturate(1.32);
+      -webkit-backdrop-filter: blur(14px) contrast(1.1) brightness(1.07) saturate(1.32);
       transition: transform .28s cubic-bezier(.2,.8,.2,1);
+      z-index: 2;
+    }
+
+    .tab-highlight::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 2px;
+      background: linear-gradient(135deg, rgba(255,255,255,.54), rgba(255,255,255,.11) 52%, rgba(255,255,255,.36));
+      mix-blend-mode: plus-lighter;
+      opacity: .86;
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .tab-highlight::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 3px;
+      backdrop-filter: url(#bottom-tab-highlight-filter) blur(11px) saturate(1.75) contrast(1.1) brightness(1.1);
+      -webkit-backdrop-filter: blur(11px) saturate(1.75) contrast(1.1) brightness(1.1);
+      mix-blend-mode: plus-lighter;
+      opacity: .58;
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      pointer-events: none;
     }
 
     .liquid-tabs[data-active="move"] .tab-highlight { transform: translateX(88.5px); }
@@ -1223,7 +1526,7 @@
 
     .tab {
       position: relative;
-      z-index: 1;
+      z-index: 4;
       height: 54px;
       border: 0;
       background: transparent;
@@ -1250,7 +1553,7 @@
     .home-indicator {
       position: absolute;
       left: 50%;
-      bottom: 8px;
+      bottom: calc(8px + env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%);
       width: 134px;
       height: 5px;
@@ -1297,28 +1600,46 @@
     .sheet button:first-of-type { border-top: 0; }
 
     @keyframes shine { to { background-position: -220% 0; } }
-    @keyframes jellyFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+    @keyframes jellyFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
     @keyframes shadowPulse { 0%,100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(.62); opacity: .45; } }
   </style>
 </head>
 <body>
+  <svg class="liquid-filter-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="bottom-tab-liquid-filter" x="0" y="0" width="271" height="60" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feImage id="bottom-tab-liquid-map" width="271" height="60" preserveAspectRatio="none" />
+        <feDisplacementMap id="bottom-tab-liquid-displacement" in="SourceGraphic" in2="bottom-tab-liquid-map" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="bottom-tab-rim-filter" x="0" y="0" width="271" height="60" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feImage id="bottom-tab-rim-map" width="271" height="60" preserveAspectRatio="none" />
+        <feDisplacementMap id="bottom-tab-rim-displacement" in="SourceGraphic" in2="bottom-tab-rim-map" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="bottom-tab-highlight-filter" x="0" y="0" width="88" height="54" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feImage id="bottom-tab-highlight-map" width="88" height="54" preserveAspectRatio="none" />
+        <feDisplacementMap id="bottom-tab-highlight-displacement" in="SourceGraphic" in2="bottom-tab-highlight-map" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
   <main class="phone" aria-label="Shedding iPhone demo">
     <section id="today" class="screen today-first active" data-page="today">
       <span id="today-result" class="hash-anchor" aria-hidden="true"></span>
       <div class="blue-layer"></div>
-      <div class="statusbar">
-        <div class="time">9:41</div><div class="island"></div>
-        <div class="indicators"><img src="assets/icon-signal.svg" alt=""><img src="assets/icon-wifi.svg" alt=""><img src="assets/icon-battery.svg" alt=""></div>
+      <div class="top-sticky">
+        <div class="statusbar">
+          <div class="time">9:41</div><div class="island"></div>
+          <div class="indicators"><img src="assets/icon-signal.svg" alt=""><img src="assets/icon-wifi.svg" alt=""><img src="assets/icon-battery.svg" alt=""></div>
+        </div>
+        <div class="top-row"><p class="hello">Good morning, Sally</p><div class="avatar large">S</div></div>
       </div>
-      <div class="top-row"><p class="hello">Good morning, Sally</p><div class="avatar large">S</div></div>
       <h1 class="today-title" id="todayTitle">How are you feeling today ?</h1>
 
       <div id="moodChooser" class="mood-row" aria-label="Choose today's mood">
-        <button class="mood" data-mood="Joyful"><span class="mood-img"><img src="assets/mood-joyful.png" alt=""></span>Joyful</button>
-        <button class="mood" data-mood="Relaxed"><span class="mood-img"><img src="assets/mood-relaxed.png" alt=""></span>Relaxed</button>
-        <button class="mood" data-mood="Calm"><span class="mood-img"><img src="assets/mood-calm.png" alt=""></span>Calm</button>
-        <button class="mood" data-mood="Tired"><span class="mood-img"><img src="assets/mood-tired.png" alt=""></span>Tired</button>
-        <button class="mood" data-mood="Sad"><span class="mood-img"><img src="assets/mood-sad.png" alt=""></span>Sad</button>
+        <button class="mood" data-mood="Joyful"><span class="mood-img"><img src="assets/mood-joyful.png" alt=""></span><span class="mood-label">Joyful</span></button>
+        <button class="mood" data-mood="Relaxed"><span class="mood-img"><img src="assets/mood-relaxed.png" alt=""></span><span class="mood-label">Relaxed</span></button>
+        <button class="mood" data-mood="Calm"><span class="mood-img"><img src="assets/mood-calm.png" alt=""></span><span class="mood-label">Calm</span></button>
+        <button class="mood" data-mood="Tired"><span class="mood-img"><img src="assets/mood-tired.png" alt=""></span><span class="mood-label">Tired</span></button>
+        <button class="mood" data-mood="Sad"><span class="mood-img"><img src="assets/mood-sad.png" alt=""></span><span class="mood-label">Sad</span></button>
       </div>
 
       <div id="todayResult" class="status-card" hidden>
@@ -1349,11 +1670,13 @@
     </section>
 
     <section id="move" class="screen soft-bg" data-page="move">
-      <div class="statusbar">
-        <div class="time">9:41</div><div class="island"></div>
-        <div class="indicators"><img src="assets/icon-signal.svg" alt=""><img src="assets/icon-wifi.svg" alt=""><img src="assets/icon-battery.svg" alt=""></div>
+      <div class="top-sticky">
+        <div class="statusbar">
+          <div class="time">9:41</div><div class="island"></div>
+          <div class="indicators"><img src="assets/icon-signal.svg" alt=""><img src="assets/icon-wifi.svg" alt=""><img src="assets/icon-battery.svg" alt=""></div>
+        </div>
+        <div class="page-title-row"><h1>Move</h1><div class="avatar">S</div></div>
       </div>
-      <div class="page-title-row"><h1>Move</h1><div class="avatar">S</div></div>
       <div class="continue-card hidden-card" id="continueCard">
         <div>
           <h2>Continue: <span>Neck and Shoulder Relief</span></h2>
@@ -1368,11 +1691,13 @@
     </section>
 
     <section id="track" class="screen soft-bg" data-page="track">
-      <div class="statusbar">
-        <div class="time">9:41</div><div class="island"></div>
-        <div class="indicators"><img src="assets/icon-signal.svg" alt=""><img src="assets/icon-wifi.svg" alt=""><img src="assets/icon-battery.svg" alt=""></div>
+      <div class="top-sticky">
+        <div class="statusbar">
+          <div class="time">9:41</div><div class="island"></div>
+          <div class="indicators"><img src="assets/icon-signal.svg" alt=""><img src="assets/icon-wifi.svg" alt=""><img src="assets/icon-battery.svg" alt=""></div>
+        </div>
+        <div class="page-title-row"><h1>Track</h1><div class="avatar">S</div></div>
       </div>
-      <div class="page-title-row"><h1>Track</h1><div class="avatar">S</div></div>
       <div class="date-row" id="dateRow">
         <button class="date-cell"><small>S</small><span>24</span></button>
         <button class="date-cell"><small>M</small><span>25</span></button>
@@ -1383,33 +1708,49 @@
         <button class="date-cell future"><small>S</small><span>30</span></button>
       </div>
       <h2 class="track-heading">Easy Record</h2>
-      <div class="diet-card">
-        <div class="diet-top">
-          <div class="remaining">Remaining <b id="remainingVal">327</b> kcal</div>
-          <div class="diet-label">Diet <img src="assets/icon-switch.svg" alt=""></div>
-        </div>
-        <div class="arc-wrap">
-          <div class="arc" id="dietArc">
-            <svg viewBox="0 0 360 180" aria-hidden="true">
-              <path class="arc-track" d="M78 160 A120 120 0 0 1 282 160"></path>
-              <path class="arc-progress" d="M78 160 A120 120 0 0 1 282 160"></path>
-            </svg>
+      <div class="diet-card" data-mode="diet">
+        <div class="diet-blue-card" aria-hidden="true"></div>
+        <button class="diet-mode-button" id="dietModeToggle" type="button"><span id="dietModeLabel">Diet</span><img src="assets/icon-switch.svg" alt=""></button>
+        <div class="diet-shell">
+          <div class="diet-top">
+            <div class="remaining"><span>Remaining</span><b id="remainingVal">327</b><span>kcal</span></div>
           </div>
-          <div class="bubbles"><span></span><span></span><span></span><span></span></div>
-          <img class="jelly-shadow" src="assets/jelly-shadow.png" alt="">
-          <div class="jelly">
-            <img class="body" src="assets/jellyfish.svg" alt="">
-            <img class="eye-l" src="assets/jelly-eye-left.svg" alt="">
-            <img class="eye-r" src="assets/jelly-eye-right.svg" alt="">
+          <img class="diet-corner" src="assets/diet-card-corner.svg" alt="">
+          <div class="diet-content">
+            <div class="arc-wrap diet-specific">
+              <div class="arc" id="dietArc">
+                <svg viewBox="0 0 285 126" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="diet-progress-gradient" x1="8" y1="112" x2="277" y2="112" gradientUnits="userSpaceOnUse">
+                      <stop id="dietProgressStart" offset="0%" stop-color="#60D9E8"></stop>
+                      <stop id="dietProgressEnd" offset="100%" stop-color="#4AB9E5"></stop>
+                    </linearGradient>
+                  </defs>
+                  <path class="arc-track" d="M8 112 A142 142 0 0 1 277 112"></path>
+                  <path class="arc-progress" d="M8 112 A142 142 0 0 1 277 112"></path>
+                </svg>
+              </div>
+              <div class="bubbles"><span></span><span></span><span></span><span></span><span></span></div>
+              <img class="jelly-shadow" src="assets/jelly-shadow-new.svg" alt="">
+              <div class="jelly">
+                <img class="body" src="assets/jelly-body.svg" alt="">
+                <div class="jelly-eyes" aria-hidden="true">
+                  <img class="jelly-eye-white left" src="assets/jelly-eye-white-left.svg" alt="">
+                  <img class="jelly-eye-white right" src="assets/jelly-eye-white-right.svg" alt="">
+                  <img class="jelly-pupils" src="assets/jelly-pupils.svg" alt="">
+                </div>
+              </div>
+            </div>
+            <div class="diet-stats diet-specific">
+              <p class="intake-label">Intake <b><span id="intakeVal">273</span> kcal</b></p>
+              <p class="burn-label">Burned <b>120 kcal</b></p>
+            </div>
+            <div class="food-strip empty diet-specific" id="foodStrip">
+              <div class="foods" id="foods"></div>
+              <button class="food-add" id="addFood"><span class="food-add-content">Add <img src="assets/icon-add.svg" alt=""></span></button>
+            </div>
+            <div class="weight-message">暂未设计，敬请期待</div>
           </div>
-        </div>
-        <div class="diet-stats">
-          <p class="intake-label">Intake <b><span id="intakeVal">273</span> kcal</b></p>
-          <p class="burn-label">Burned <b>120 kcal</b></p>
-        </div>
-        <div class="food-strip">
-          <div class="foods" id="foods"></div>
-          <button class="food-add" id="addFood">Add <img src="assets/icon-add.svg" alt=""></button>
         </div>
       </div>
       <h2 class="track-heading">Your Status</h2>
@@ -1459,19 +1800,125 @@
     ];
 
     const foodsSeed = [
-      ['Breakfast', 61, 'assets/icon-fork.svg'],
-      ['Lunch', 121, 'assets/icon-nutrition.svg'],
-      ['Lunch', 64, 'assets/icon-cook.svg'],
-      ['other', 87, 'assets/icon-fork.svg'],
+      ['Breakfast', [48, 92], 'assets/icon-fork.svg'],
+      ['Lunch', [96, 148], 'assets/icon-nutrition.svg'],
+      ['Lunch', [56, 116], 'assets/icon-cook.svg'],
+      ['Other', [42, 132], 'assets/icon-fork.svg'],
     ];
     let foodIndex = 0;
-    let intake = 273;
+    let intake = 0;
     const maxKcal = 600;
+    let bubblePathPosition = 0;
+    let bubbleAnimation = null;
+    let firstFoodAnimating = false;
     const todayDate = new Date(2026, 4, 26);
+    let selectedDateKey = dateKey(todayDate);
+    const dietRecords = {};
     let weekOffset = 0;
 
+    function smoothStep(a, b, t) {
+      t = Math.max(0, Math.min(1, (t - a) / (b - a)));
+      return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+
+    function roundedRectSDF(x, y, halfWidth, halfHeight, radius) {
+      const qx = Math.abs(x) - halfWidth + radius;
+      const qy = Math.abs(y) - halfHeight + radius;
+      return Math.min(Math.max(qx, qy), 0) + Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) - radius;
+    }
+
+    function buildLiquidMap({ width, height, radius, edgeWidth, edgeStrength, coreStrength, imageId, displacementId }) {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      const data = new Uint8ClampedArray(width * height * 4);
+      const cx = width / 2;
+      const cy = height / 2;
+      const halfWidth = width / 2;
+      const halfHeight = height / 2;
+      const rawValues = [];
+      let maxScale = 0;
+
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const px = x - cx;
+          const py = y - cy;
+          const dist = roundedRectSDF(px, py, halfWidth, halfHeight, radius);
+          const insideDepth = Math.max(0, -dist);
+          const outsideDepth = Math.max(0, dist);
+          const innerFade = 1 - smoothStep(0, edgeWidth, insideDepth);
+          const outerFade = 1 - smoothStep(0, edgeWidth * .55, outsideDepth);
+          const edge = Math.pow(innerFade * outerFade, 1.18);
+          const center = 1 - Math.pow(1 - smoothStep(0, Math.min(width, height) * .52, insideDepth), 1.35);
+          const strength = edge * edgeStrength + center * coreStrength;
+          const scale = 1 - strength;
+          const sampleX = cx + px * scale;
+          const sampleY = cy + py * scale;
+          const dx = sampleX - x;
+          const dy = sampleY - y;
+          maxScale = Math.max(maxScale, Math.abs(dx), Math.abs(dy));
+          rawValues.push(dx, dy);
+        }
+      }
+
+      maxScale = Math.max(1, maxScale * .5);
+      let rawIndex = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = rawValues[rawIndex++] / maxScale + .5;
+        const g = rawValues[rawIndex++] / maxScale + .5;
+        data[i] = Math.max(0, Math.min(255, r * 255));
+        data[i + 1] = Math.max(0, Math.min(255, g * 255));
+        data[i + 2] = 0;
+        data[i + 3] = 255;
+      }
+
+      context.putImageData(new ImageData(data, width, height), 0, 0);
+      const href = canvas.toDataURL();
+      const image = document.getElementById(imageId);
+      const displacement = document.getElementById(displacementId);
+      if (image && displacement) {
+        image.setAttribute('href', href);
+        image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', href);
+        displacement.setAttribute('scale', maxScale.toFixed(3));
+      }
+    }
+
+    function buildBottomTabLiquidFilters() {
+      buildLiquidMap({
+        width: 271,
+        height: 60,
+        radius: 30,
+        edgeWidth: 26,
+        edgeStrength: .18,
+        coreStrength: .018,
+        imageId: 'bottom-tab-liquid-map',
+        displacementId: 'bottom-tab-liquid-displacement'
+      });
+      buildLiquidMap({
+        width: 271,
+        height: 60,
+        radius: 30,
+        edgeWidth: 3,
+        edgeStrength: .08,
+        coreStrength: 0,
+        imageId: 'bottom-tab-rim-map',
+        displacementId: 'bottom-tab-rim-displacement'
+      });
+      buildLiquidMap({
+        width: 88,
+        height: 54,
+        radius: 27,
+        edgeWidth: 23,
+        edgeStrength: .17,
+        coreStrength: .018,
+        imageId: 'bottom-tab-highlight-map',
+        displacementId: 'bottom-tab-highlight-displacement'
+      });
+    }
+
     function renderPlan() {
-      document.getElementById('planList').innerHTML = planItems.map(([name, sub, img, pct, done]) => `
+      document.getElementById('planList').innerHTML = planItems.map(([name, sub, img, pct, done], index) => `
         <div class="plan-item ${done ? 'done' : ''}">
           <button class="check-hot" aria-label="toggle ${name}">
             <img class="check-icon" src="${done ? 'assets/check-done.svg' : 'assets/check-empty.svg'}" alt="">
@@ -1482,7 +1929,7 @@
             ${pct ? `<div class="bar"><span style="width:${pct}%"></span></div>` : ''}
           </div>
           <img class="plan-art" src="${img}" alt="">
-        </div>`).join('');
+        </div>${index < planItems.length - 1 ? '<div class="plan-divider" aria-hidden="true"></div>' : ''}`).join('');
 
       document.querySelectorAll('.check-hot').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1526,39 +1973,244 @@
       }
     }
 
-    function renderFoods(initial = true) {
+    function dateKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function currentDietRecord() {
+      if (!dietRecords[selectedDateKey]) {
+        dietRecords[selectedDateKey] = { intake: 0, foods: [] };
+      }
+      return dietRecords[selectedDateKey];
+    }
+
+    function loadDietRecord() {
+      const record = currentDietRecord();
       const foods = document.getElementById('foods');
+      const strip = document.getElementById('foodStrip');
+      intake = record.intake;
+      strip.classList.add('date-loading');
+      foods.innerHTML = record.foods.map(foodCard).join('');
+      foods.querySelectorAll('.food-card.entering').forEach(card => card.classList.remove('entering'));
+      strip.classList.toggle('empty', record.foods.length === 0);
+      strip.classList.remove('can-scroll-left', 'can-scroll-right', 'add-shrinking', 'add-revealing');
+      firstFoodAnimating = false;
+      updateKcal();
+      requestAnimationFrame(() => {
+        updateFoodMasks();
+        requestAnimationFrame(() => strip.classList.remove('date-loading'));
+      });
+    }
+
+    function renderFoods(initial = true) {
       if (initial) {
-        foods.innerHTML = foodsSeed.slice(0, 3).map(foodCard).join('');
+        loadDietRecord();
       } else {
-        const item = foodsSeed[foodIndex % foodsSeed.length];
-        foods.insertAdjacentHTML('beforeend', foodCard(item));
-        intake = Math.min(maxKcal, intake + item[1]);
-        foodIndex += 1;
-        updateKcal();
-        foods.scrollLeft = foods.scrollWidth;
+        addFood();
       }
     }
 
+    function createFoodItem() {
+      const [label, range, icon] = foodsSeed[foodIndex % foodsSeed.length];
+      const kcal = randomKcal(range[0], range[1]);
+      foodIndex += 1;
+      intake += kcal;
+      const item = [label, kcal, icon];
+      const record = currentDietRecord();
+      record.intake = intake;
+      record.foods.push(item);
+      updateKcal();
+      return item;
+    }
+
+    function appendFoodCard(item, scrollToEnd = true) {
+      const foods = document.getElementById('foods');
+      foods.insertAdjacentHTML('beforeend', foodCard(item));
+      const card = foods.lastElementChild;
+      requestAnimationFrame(() => {
+        card?.classList.remove('entering');
+        if (scrollToEnd) foods.scrollLeft = foods.scrollWidth;
+        updateFoodMasks();
+      });
+    }
+
+    function addFood() {
+      const strip = document.getElementById('foodStrip');
+      if (firstFoodAnimating) return;
+      const item = createFoodItem();
+
+      if (!strip.classList.contains('empty')) {
+        appendFoodCard(item);
+        return;
+      }
+
+      firstFoodAnimating = true;
+      strip.classList.add('add-shrinking');
+
+      setTimeout(() => {
+        appendFoodCard(item, false);
+        strip.classList.remove('empty');
+      }, 120);
+
+      setTimeout(() => {
+        strip.classList.remove('add-shrinking');
+        strip.classList.add('add-revealing');
+      }, 500);
+
+      setTimeout(() => {
+        strip.classList.remove('add-revealing');
+        firstFoodAnimating = false;
+        updateFoodMasks();
+      }, 660);
+    }
+
+    function updateFoodMasks() {
+      const strip = document.getElementById('foodStrip');
+      const foods = document.getElementById('foods');
+      if (!strip || !foods || strip.classList.contains('empty') || strip.classList.contains('add-shrinking') || strip.classList.contains('add-revealing')) {
+        strip?.classList.remove('can-scroll-left', 'can-scroll-right');
+        return;
+      }
+      const hasOverflow = foods.scrollWidth > foods.clientWidth + 1;
+      const canScrollLeft = hasOverflow && foods.scrollLeft > 1;
+      const canScrollRight = hasOverflow && foods.scrollLeft + foods.clientWidth < foods.scrollWidth - 1;
+      strip.classList.toggle('can-scroll-left', canScrollLeft);
+      strip.classList.toggle('can-scroll-right', canScrollRight);
+    }
+
+    function toggleDietMode() {
+      const card = document.querySelector('.diet-card');
+      const label = document.getElementById('dietModeLabel');
+      const nextMode = card.dataset.mode === 'diet' ? 'weight' : 'diet';
+      card.dataset.mode = nextMode;
+      label.textContent = nextMode === 'diet' ? 'Diet' : 'Weight';
+    }
+
+    function randomKcal(min, max) {
+      return Math.round(min + Math.random() * (max - min));
+    }
+
     function foodCard([label, kcal, icon]) {
-      return `<div class="food-card"><img src="${icon}" alt=""><div><small>${label}</small><b>${kcal} kcal</b></div></div>`;
+      return `<div class="food-card entering"><img src="${icon}" alt=""><div><small>${label}</small><b>${kcal} kcal</b></div></div>`;
+    }
+
+    function mixColor(from, to, amount) {
+      const value = from.map((channel, index) => Math.round(channel + (to[index] - channel) * amount));
+      return `rgb(${value[0]}, ${value[1]}, ${value[2]})`;
+    }
+
+    function positionBubbles(progress, pathPosition, length) {
+      const arcWrap = document.querySelector('.arc-wrap');
+      const point = progress.getPointAtLength(pathPosition);
+      const ahead = progress.getPointAtLength(Math.min(length, pathPosition + 2));
+      const behind = progress.getPointAtLength(Math.max(0, pathPosition - 2));
+      const dx = pathPosition >= length - 1 ? point.x - behind.x : ahead.x - point.x;
+      const dy = pathPosition >= length - 1 ? point.y - behind.y : ahead.y - point.y;
+      const normalLength = Math.max(1, Math.hypot(dx, dy));
+      const outwardX = dy / normalLength;
+      const outwardY = -dx / normalLength;
+      const rotation = Math.atan2(dy, dx) * 180 / Math.PI;
+      arcWrap.style.setProperty('--bubble-x', `${point.x + outwardX * 2}px`);
+      arcWrap.style.setProperty('--bubble-y', `${point.y + outwardY * 2}px`);
+      arcWrap.style.setProperty('--bubble-rot', `${rotation}deg`);
+    }
+
+    function animateBubbles(progress, targetPosition, length, visible) {
+      if (bubbleAnimation) cancelAnimationFrame(bubbleAnimation);
+      if (!visible) {
+        bubblePathPosition = targetPosition;
+        positionBubbles(progress, targetPosition, length);
+        return;
+      }
+      const startPosition = bubblePathPosition;
+      const startedAt = performance.now();
+      const duration = 420;
+      const ease = t => cubicBezier(.2, .8, .2, 1, t);
+
+      const step = now => {
+        const t = Math.min(1, (now - startedAt) / duration);
+        bubblePathPosition = startPosition + (targetPosition - startPosition) * ease(t);
+        positionBubbles(progress, bubblePathPosition, length);
+        if (t < 1) {
+          bubbleAnimation = requestAnimationFrame(step);
+        } else {
+          bubbleAnimation = null;
+        }
+      };
+
+      bubbleAnimation = requestAnimationFrame(step);
+    }
+
+    function updateJellyGaze(progress, pointAt, length, visible) {
+      const jelly = document.querySelector('.jelly');
+      const eyes = document.querySelector('.jelly-eyes');
+      const arc = document.querySelector('.arc');
+      if (!jelly || !eyes || !arc || !visible) {
+        jelly?.style.setProperty('--eyes-x', '10.5px');
+        jelly?.style.setProperty('--eyes-y', '0px');
+        jelly?.style.setProperty('--pupil-x', '.5px');
+        jelly?.style.setProperty('--pupil-y', '.4px');
+        return;
+      }
+
+      const target = progress.getPointAtLength(Math.min(length, pointAt));
+      const arcRect = arc.getBoundingClientRect();
+      const jellyRect = jelly.getBoundingClientRect();
+      const targetX = arcRect.left + target.x * (arcRect.width / 285);
+      const targetY = arcRect.top + target.y * (arcRect.height / 126);
+      const faceX = jellyRect.left + 54.5;
+      const faceY = jellyRect.top + 36;
+      const dx = targetX - faceX;
+      const dy = targetY - faceY;
+      const distance = Math.max(1, Math.hypot(dx, dy));
+      const eyesX = Math.max(-10, Math.min(10, (dx / distance) * 10));
+      const eyesY = Math.max(-6, Math.min(6, (dy / distance) * 6));
+      const pupilX = -2 + Math.max(-3.4, Math.min(3.4, (dx / distance) * 3.4));
+      const pupilY = 2 + Math.max(-2, Math.min(2, (dy / distance) * 2));
+      jelly.style.setProperty('--eyes-x', `${eyesX}px`);
+      jelly.style.setProperty('--eyes-y', `${eyesY}px`);
+      jelly.style.setProperty('--pupil-x', `${pupilX}px`);
+      jelly.style.setProperty('--pupil-y', `${pupilY}px`);
+    }
+
+    function cubicBezier(x1, y1, x2, y2, t) {
+      const sample = (a, b, p) => {
+        const inv = 1 - p;
+        return 3 * inv * inv * p * a + 3 * inv * p * p * b + p * p * p;
+      };
+      let low = 0;
+      let high = 1;
+      let p = t;
+      for (let i = 0; i < 8; i += 1) {
+        const x = sample(x1, x2, p);
+        if (Math.abs(x - t) < .001) break;
+        if (x < t) low = p;
+        else high = p;
+        p = (low + high) / 2;
+      }
+      return sample(y1, y2, p);
     }
 
     function updateKcal() {
       document.getElementById('intakeVal').textContent = intake;
       document.getElementById('remainingVal').textContent = Math.max(0, maxKcal - intake);
       const pct = Math.min(1, intake / maxKcal);
+      const overPct = Math.max(0, Math.min(1, (intake - maxKcal) / maxKcal));
+      document.getElementById('dietProgressStart').setAttribute('stop-color', mixColor([96, 217, 232], [255, 125, 176], overPct));
+      document.getElementById('dietProgressEnd').setAttribute('stop-color', mixColor([74, 185, 229], [234, 56, 127], overPct));
       const arcWrap = document.querySelector('.arc-wrap');
+      arcWrap.style.setProperty('--progress-visibility', pct <= 0 ? 0 : 1);
+      arcWrap.style.setProperty('--bubble-color', mixColor([91, 217, 232], [244, 78, 143], overPct));
+      arcWrap.style.setProperty('--bubble-mid-color', mixColor([91, 217, 232], [255, 125, 176], overPct));
+      arcWrap.style.setProperty('--bubble-soft-color', mixColor([96, 229, 238], [255, 154, 194], overPct));
       const progress = document.querySelector('.arc-progress');
       const length = progress.getTotalLength();
       progress.style.setProperty('--arc-len', length);
       progress.style.setProperty('--dash', length * (1 - pct));
-      const point = progress.getPointAtLength(length * pct);
-      const nextPoint = progress.getPointAtLength(Math.min(length, length * pct + 2));
-      const rotation = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * 180 / Math.PI;
-      arcWrap.style.setProperty('--bubble-x', `${point.x}px`);
-      arcWrap.style.setProperty('--bubble-y', `${point.y}px`);
-      arcWrap.style.setProperty('--bubble-rot', `${rotation}deg`);
+      const pointAt = length * pct;
+      const bubbleAt = Math.max(0, pointAt - 8);
+      animateBubbles(progress, bubbleAt, length, pct > 0);
+      updateJellyGaze(progress, pointAt, length, pct > 0);
     }
 
     function renderStatusGrid() {
@@ -1617,13 +2269,15 @@
     }
 
     function updateTopFade(screen) {
-      if (!screen || !screen.classList.contains('soft-bg')) return;
+      if (!screen || !screen.querySelector('.top-sticky')) return;
       const fade = Math.min(1, screen.scrollTop / 90);
       screen.style.setProperty('--top-fade', fade.toFixed(3));
+      screen.classList.toggle('is-scrolled', screen.scrollTop > 1);
     }
 
     function bindTopFade() {
-      document.querySelectorAll('.screen.soft-bg').forEach(screen => {
+      document.querySelectorAll('.screen').forEach(screen => {
+        if (!screen.querySelector('.top-sticky')) return;
         updateTopFade(screen);
         screen.addEventListener('scroll', () => updateTopFade(screen), { passive: true });
       });
@@ -1639,12 +2293,16 @@
         date.setDate(start.getDate() + index);
         const isToday = date.toDateString() === todayDate.toDateString();
         const isFuture = date > todayDate;
+        const key = dateKey(date);
+        const isActive = key === selectedDateKey;
         const label = isToday ? 'today' : labels[date.getDay()];
-        return `<button class="date-cell ${isToday ? 'active' : ''} ${isFuture ? 'future' : ''}" ${isFuture ? 'disabled' : ''}><small>${label}</small><span>${date.getDate()}</span></button>`;
+        return `<button class="date-cell ${isActive ? 'active' : ''} ${isFuture ? 'future' : ''}" data-date="${key}" ${isFuture ? 'disabled' : ''}><small>${label}</small><span>${date.getDate()}</span></button>`;
       }).join('');
       row.querySelectorAll('.date-cell:not(.future)').forEach(cell => cell.addEventListener('click', () => {
+        selectedDateKey = cell.dataset.date;
         row.querySelectorAll('.date-cell').forEach(c => c.classList.remove('active'));
         cell.classList.add('active');
+        loadDietRecord();
         refreshStatusGrid();
       }));
     }
@@ -1677,9 +2335,13 @@
     function chooseMood(mood) {
       const today = document.getElementById('today');
       today.scrollTop = 0;
-      setTimeout(() => { today.scrollTop = 0; }, 0);
+      setTimeout(() => {
+        today.scrollTop = 0;
+        updateTopFade(today);
+      }, 0);
       today.classList.remove('today-first');
       today.classList.add('soft-bg');
+      updateTopFade(today);
       document.getElementById('moodChooser').hidden = true;
       document.getElementById('todayResult').hidden = false;
       requestAnimationFrame(() => document.getElementById('todayResult').classList.add('result-visible'));
@@ -1708,6 +2370,7 @@
       }, 18);
     }
 
+    buildBottomTabLiquidFilters();
     renderPlan();
     renderCourses();
     renderFoods(true);
@@ -1719,6 +2382,8 @@
     document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchPage(tab.dataset.target)));
     document.querySelectorAll('.mood').forEach(btn => btn.addEventListener('click', () => chooseMood(btn.dataset.mood)));
     document.getElementById('moreDetails').addEventListener('click', () => switchPage('track'));
+    document.getElementById('dietModeToggle').addEventListener('click', toggleDietMode);
+    document.getElementById('foods').addEventListener('scroll', updateFoodMasks, { passive: true });
     document.getElementById('changeMood').addEventListener('click', () => document.getElementById('moodModal').classList.add('show'));
     document.getElementById('moodModal').addEventListener('click', e => {
       if (e.target.id === 'moodModal') e.currentTarget.classList.remove('show');

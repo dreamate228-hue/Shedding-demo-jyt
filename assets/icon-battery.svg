@@ -1,3 +1,7 @@
-<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 21 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path id="Fill" d="M0 2C0 0.89543 0.895431 0 2 0H19C20.1046 0 21 0.895431 21 2V7C21 8.10457 20.1046 9 19 9H2C0.89543 9 0 8.10457 0 7V2Z" fill="var(--fill-0, white)"/>
+<svg preserveAspectRatio="xMidYMid meet" width="25" height="12" overflow="visible" style="display: block;" viewBox="0 0 25 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Battery">
+<path id="Border" d="M2.75 0.75H19.25C20.3546 0.75 21.25 1.64543 21.25 2.75V9.25C21.25 10.3546 20.3546 11.25 19.25 11.25H2.75C1.64543 11.25 0.75 10.3546 0.75 9.25V2.75C0.75 1.64543 1.64543 0.75 2.75 0.75Z" stroke="var(--fill-0, white)" stroke-width="1.5"/>
+<path id="Cap" d="M22.25 4C23.25 4.35 24 5.05 24 6C24 6.95 23.25 7.65 22.25 8V4Z" fill="var(--fill-0, white)"/>
+<path id="Fill" d="M3 3.2C3 2.53726 3.53726 2 4.2 2H18.3C18.9627 2 19.5 2.53726 19.5 3.2V8.8C19.5 9.46274 18.9627 10 18.3 10H4.2C3.53726 10 3 9.46274 3 8.8V3.2Z" fill="var(--fill-0, white)"/>
+</g>
 </svg>
