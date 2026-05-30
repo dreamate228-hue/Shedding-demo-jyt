@@ -272,13 +272,15 @@
 
     .today-title {
       margin: 8px 20px 0;
-      width: 286px;
+      width: auto;
       font-size: 32px;
       color: var(--deep);
+      white-space: pre-line;
+      text-align: left;
     }
 
     .today-first .today-title {
-      width: 230px;
+      width: auto;
       color: #fff;
     }
 
@@ -1632,7 +1634,8 @@
         </div>
         <div class="top-row"><p class="hello">Good morning, Sally</p><div class="avatar large">S</div></div>
       </div>
-      <h1 class="today-title" id="todayTitle">How are you feeling today ?</h1>
+      <h1 class="today-title" id="todayTitle">How are you
+feeling today ?</h1>
 
       <div id="moodChooser" class="mood-row" aria-label="Choose today's mood">
         <button class="mood" data-mood="Joyful"><span class="mood-img"><img src="assets/mood-joyful.png" alt=""></span><span class="mood-label">Joyful</span></button>
@@ -2345,7 +2348,7 @@
       document.getElementById('moodChooser').hidden = true;
       document.getElementById('todayResult').hidden = false;
       requestAnimationFrame(() => document.getElementById('todayResult').classList.add('result-visible'));
-      document.getElementById('todayTitle').textContent = 'How would you like to start today ?';
+      document.getElementById('todayTitle').textContent = 'How would you like\nto start today ?';
       document.getElementById('moodLabel').textContent = mood;
       document.getElementById('todayPlanHead').classList.add('compact');
       typeAi(mood.toLowerCase());
